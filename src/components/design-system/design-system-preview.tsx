@@ -18,7 +18,7 @@ const colors = [
   { name: "Warning", className: "bg-warning" },
 ];
 
-export default function Home() {
+export function DesignSystemPreview() {
   return (
     <main className="app-container">
       <div className="page-container section-stack">

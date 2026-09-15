@@ -1,0 +1,39 @@
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import { notFound } from "next/navigation";
+
+import { isLocale, locales } from "@/i18n/config";
+
+import "../globals.css";
+
+export const metadata: Metadata = {
+  title: {
+    default: "Personal Learning OS",
+    template: "%s · Personal Learning OS",
+  },
+  description: "A personal learning and growth workspace.",
+};
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+
+  if (!isLocale(locale)) {
+    notFound();
+  }
+
+  return (
+    <html lang={locale}>
+      <body>{children}</body>
+    </html>
+  );
+}
