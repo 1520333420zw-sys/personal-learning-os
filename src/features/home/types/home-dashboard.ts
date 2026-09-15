@@ -50,10 +50,15 @@ export interface HomeSessionViewModel {
   startedAtLabel: string;
 }
 
-export interface HomeQuickActionViewModel {
+export interface HomeNewsViewModel {
   id: string;
-  label: string;
-  href: string;
+  title: string;
+  summary: string;
+  categoryLabel: string;
+  source: string;
+  publishedAtLabel: string;
+  url?: string;
+  isDemo: boolean;
 }
 
 export interface HomeDashboardData {
@@ -63,5 +68,5 @@ export interface HomeDashboardData {
   reviews: readonly HomeReviewViewModel[];
   subjects: readonly HomeSubjectViewModel[];
   recentSessions: readonly HomeSessionViewModel[];
-  quickActions: readonly HomeQuickActionViewModel[];
+  news: readonly HomeNewsViewModel[];
 }

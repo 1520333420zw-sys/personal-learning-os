@@ -1,3 +1,7 @@
-export { HomeDashboard } from "./components";
-export { HomeDashboardService } from "./services";
-export type { HomeDashboardData } from "./types";
+export {
+  HomeDashboard,
+  PomodoroWidget,
+  type PomodoroCompletion,
+} from "./components";
+export { HomeDashboardService, NewsService } from "./services";
+export type { HomeDashboardData, HomeNewsViewModel } from "./types";

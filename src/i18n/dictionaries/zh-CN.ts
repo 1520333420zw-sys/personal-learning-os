@@ -57,7 +57,8 @@ export const zhCN: Dictionary = {
       reviews: "今日复习", reviewsDescription: "优先照顾已经到期的记忆。",
       subjects: "学习科目", subjectsDescription: "查看今天与最近的学习状态。",
       recent: "最近学习", recentDescription: "刚刚积累下来的学习记录。",
-      quickActions: "快捷入口", quickActionsDescription: "选择下一步，马上开始。",
+      pomodoro: "番茄时钟", pomodoroDescription: "选择学习科目和专注时长，安静地开始。",
+      news: "热点新闻", newsDescription: "首页信息摘要；当前内容仅用于展示。",
     },
     empty: { tasks: "今天还没有安排学习任务。", reviews: "今天没有待完成的复习。", sessions: "完成一次学习后，记录会出现在这里。" },
     actions: { viewPlan: "前往学习计划", openSubject: "进入学习" },
@@ -68,6 +69,18 @@ export const zhCN: Dictionary = {
     sessionType: { learning: "学习", review: "复习", practice: "练习", recitation: "背诵", reading: "阅读" },
     targetType: { subject: "科目", chapter: "章节", knowledgePoint: "知识点", vocabulary: "单词", recitation: "背诵", questionBank: "题库", question: "题目", reading: "阅读", book: "书籍", custom: "学习内容" },
     knownTargets: { generalPsychology: "普通心理学知识点", marxism: "马克思主义基本原理" },
+    pomodoro: {
+      selectSubject: "选择科目", duration: "专注时长", customSubject: "自定义",
+      customDuration: "自定义时长", start: "开始", pause: "暂停", resume: "继续",
+      finish: "结束", reset: "重置", idle: "准备开始", running: "正在专注",
+      paused: "已暂停", completed: "已完成", minutes: "分钟",
+      durationError: "请输入 5–180 分钟", completionAnnouncement: "本次专注已完成。",
+    },
+    news: {
+      demo: "示例内容", source: "来源", publishedAt: "发布时间", empty: "暂无新闻摘要。",
+      readOriginal: "查看原文",
+      categories: { china: "中国", world: "世界", economy: "经济", technology: "科技", politics: "政治", society: "社会" },
+    },
     subject: { psychology: "312 心理学", politics: "政治", english: "英语", chapters: "个章节", studiedToday: "今日已学习", noStudyToday: "今日尚未学习", lastStudied: "最近学习", notStarted: "暂无学习记录" },
   },
 };

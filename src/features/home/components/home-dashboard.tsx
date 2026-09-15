@@ -5,6 +5,7 @@ import type { Dictionary } from "@/i18n";
 import { cn } from "@/lib/cn";
 
 import type { HomeDashboardData } from "../types";
+import { PomodoroWidget } from "./pomodoro-widget";
 
 interface HomeDashboardProps {
   data: HomeDashboardData;
@@ -42,15 +43,15 @@ export function HomeDashboard({ data, dictionary, locale }: HomeDashboardProps) 
         <div className="grid min-w-0 gap-10 desktop:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.8fr)] desktop:items-start">
           <div className="flex min-w-0 flex-col gap-10 tablet:gap-12">
             <TodayTasks data={data} dictionary={dictionary} locale={locale} />
+            <PomodoroWidget subjects={data.subjects} messages={dictionary.home} />
             <SubjectOverview data={data} dictionary={dictionary} />
           </div>
           <aside className="flex min-w-0 flex-col gap-10 tablet:grid tablet:grid-cols-2 desktop:flex desktop:grid-cols-none tablet:gap-8" aria-label={messages.sections.reviews}>
             <TodayReviews data={data} dictionary={dictionary} />
+            <HotNews data={data} dictionary={dictionary} />
             <RecentStudy data={data} dictionary={dictionary} />
           </aside>
         </div>
-
-        <QuickActions data={data} dictionary={dictionary} />
       </div>
     </main>
   );
@@ -181,16 +182,42 @@ function RecentStudy({ data, dictionary }: Omit<HomeDashboardProps, "locale">) {
   );
 }
 
-function QuickActions({ data, dictionary }: Omit<HomeDashboardProps, "locale">) {
+function HotNews({ data, dictionary }: Omit<HomeDashboardProps, "locale">) {
   const messages = dictionary.home;
   return (
-    <section aria-labelledby="quick-actions-title">
-      <SectionHeader titleId="quick-actions-title" title={messages.sections.quickActions} description={messages.sections.quickActionsDescription} />
-      <div className="mt-5 grid grid-cols-2 gap-3 tablet:grid-cols-5">
-        {data.quickActions.map((action) => (
-          <Link key={action.id} href={action.href} className="flex min-h-14 items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 type-label text-primary shadow-soft transition-[background-color,border-color,transform] hover:-translate-y-0.5 hover:border-border-strong hover:bg-surface-raised active:translate-y-0">{action.label}<span aria-hidden="true" className="text-muted">→</span></Link>
-        ))}
-      </div>
+    <section aria-labelledby="hot-news-title">
+      <SectionHeader
+        titleId="hot-news-title"
+        title={messages.sections.news}
+        description={messages.sections.newsDescription}
+      />
+      <Card className="mt-5" padding="sm">
+        {data.news.length ? (
+          <ul className="divide-y divide-border">
+            {data.news.map((item) => (
+              <li key={item.id} className="py-4 first:pt-0 last:pb-0">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <Badge variant="neutral">{item.categoryLabel}</Badge>
+                  {item.isDemo ? <Badge variant="warning">{messages.news.demo}</Badge> : null}
+                </div>
+                <h3 className="type-label text-primary">{item.title}</h3>
+                <p className="type-small mt-2 text-secondary">{item.summary}</p>
+                <dl className="type-caption mt-3 flex flex-wrap gap-x-3 gap-y-1 text-muted">
+                  <div className="flex gap-1"><dt>{messages.news.source}:</dt><dd>{item.source}</dd></div>
+                  <div className="flex gap-1"><dt>{messages.news.publishedAt}:</dt><dd>{item.publishedAtLabel}</dd></div>
+                </dl>
+                {item.url ? (
+                  <a href={item.url} target="_blank" rel="noreferrer" className="type-label mt-3 inline-flex min-h-11 items-center text-accent underline-offset-4 hover:underline">
+                    {messages.news.readOriginal} →
+                  </a>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="type-body text-secondary">{messages.news.empty}</p>
+        )}
+      </Card>
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import type { CoreLearningDataContext } from "@/data";
+import type { NewsRepository } from "@/data";
 import type { StudySession, Subject } from "@/domain";
 import type { Dictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
@@ -6,6 +7,7 @@ import { toLocalDateKey } from "@/lib/date";
 
 import type { HomeDashboardData, HomeSubjectViewModel } from "../types";
 import { StudyTargetPresenter } from "./target-presenter";
+import { NewsService } from "./news-service";
 
 const subjectRoutes: Record<string, string> = {
   "psychology-312": "/psychology",
@@ -18,6 +20,7 @@ export class HomeDashboardService {
     private readonly context: CoreLearningDataContext,
     private readonly locale: Locale,
     private readonly dictionary: Dictionary,
+    private readonly newsRepository: NewsRepository,
   ) {}
 
   async getDashboard(referenceDate = new Date()): Promise<HomeDashboardData> {
@@ -84,13 +87,11 @@ export class HomeDashboardService {
           }).format(new Date(session.startedAt)),
         })),
       ),
-      quickActions: [
-        { id: "plan", label: this.dictionary.navigation.plan, href: `/${this.locale}/plan` },
-        { id: "psychology", label: this.dictionary.navigation.psychology, href: `/${this.locale}/psychology` },
-        { id: "politics", label: this.dictionary.navigation.politics, href: `/${this.locale}/politics` },
-        { id: "vocabulary", label: this.dictionary.navigation.vocabulary, href: `/${this.locale}/vocabulary` },
-        { id: "focus", label: this.dictionary.navigation.focus, href: `/${this.locale}/focus` },
-      ],
+      news: await new NewsService(
+        this.newsRepository,
+        this.locale,
+        messages,
+      ).getHomeSummary(),
     };
   }
 

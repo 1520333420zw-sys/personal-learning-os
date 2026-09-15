@@ -11,3 +11,4 @@ export {
   MockSubjectRepository,
   MockTaskRepository,
 } from "./mock-learning-repositories";
+export { MockNewsRepository } from "./mock-news-repository";

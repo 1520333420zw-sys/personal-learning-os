@@ -57,7 +57,8 @@ export const en: Dictionary = {
       reviews: "Today's Reviews", reviewsDescription: "Return to the memories that need attention.",
       subjects: "Study Subjects", subjectsDescription: "See today's activity across your subjects.",
       recent: "Recent Study", recentDescription: "A quiet record of your latest sessions.",
-      quickActions: "Quick Actions", quickActionsDescription: "Choose the next step and begin.",
+      pomodoro: "Pomodoro", pomodoroDescription: "Choose a subject and focus duration, then begin quietly.",
+      news: "Hot News", newsDescription: "A Home summary; the current items are for demonstration only.",
     },
     empty: { tasks: "There are no study tasks planned for today.", reviews: "There are no reviews due today.", sessions: "Your completed study sessions will appear here." },
     actions: { viewPlan: "Go to Study Plan", openSubject: "Open subject" },
@@ -68,6 +69,18 @@ export const en: Dictionary = {
     sessionType: { learning: "Learning", review: "Review", practice: "Practice", recitation: "Recitation", reading: "Reading" },
     targetType: { subject: "Subject", chapter: "Chapter", knowledgePoint: "Knowledge point", vocabulary: "Vocabulary", recitation: "Recitation", questionBank: "Question bank", question: "Question", reading: "Reading", book: "Book", custom: "Study item" },
     knownTargets: { generalPsychology: "General psychology concept", marxism: "Fundamentals of Marxism" },
+    pomodoro: {
+      selectSubject: "Select subject", duration: "Focus duration", customSubject: "Custom",
+      customDuration: "Custom duration", start: "Start", pause: "Pause", resume: "Resume",
+      finish: "Finish", reset: "Reset", idle: "Ready to start", running: "Focusing",
+      paused: "Paused", completed: "Completed", minutes: "minutes",
+      durationError: "Enter 5–180 minutes", completionAnnouncement: "Focus session completed.",
+    },
+    news: {
+      demo: "Demo content", source: "Source", publishedAt: "Published", empty: "No news summaries yet.",
+      readOriginal: "Read original",
+      categories: { china: "China", world: "World", economy: "Economy", technology: "Technology", politics: "Politics", society: "Society" },
+    },
     subject: { psychology: "312 Psychology", politics: "Politics", english: "English", chapters: "chapters", studiedToday: "studied today", noStudyToday: "No study today", lastStudied: "Last studied", notStarted: "No study record yet" },
   },
 };

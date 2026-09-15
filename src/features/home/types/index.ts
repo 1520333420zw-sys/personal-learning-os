@@ -1,7 +1,7 @@
 export type {
   HomeDashboardData,
   HomeOverviewViewModel,
-  HomeQuickActionViewModel,
+  HomeNewsViewModel,
   HomeReviewViewModel,
   HomeSessionViewModel,
   HomeSubjectViewModel,

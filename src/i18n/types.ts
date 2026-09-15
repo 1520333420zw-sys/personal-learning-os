@@ -14,7 +14,7 @@ export interface HomeMessages {
   sections: {
     tasks: string; tasksDescription: string; reviews: string; reviewsDescription: string;
     subjects: string; subjectsDescription: string; recent: string; recentDescription: string;
-    quickActions: string; quickActionsDescription: string;
+    pomodoro: string; pomodoroDescription: string; news: string; newsDescription: string;
   };
   empty: { tasks: string; reviews: string; sessions: string };
   actions: { viewPlan: string; openSubject: string };
@@ -25,6 +25,16 @@ export interface HomeMessages {
   sessionType: Record<"learning" | "review" | "practice" | "recitation" | "reading", string>;
   targetType: Record<"subject" | "chapter" | "knowledgePoint" | "vocabulary" | "recitation" | "questionBank" | "question" | "reading" | "book" | "custom", string>;
   knownTargets: { generalPsychology: string; marxism: string };
+  pomodoro: {
+    selectSubject: string; duration: string; customSubject: string; customDuration: string;
+    start: string; pause: string; resume: string; finish: string; reset: string;
+    idle: string; running: string; paused: string; completed: string;
+    minutes: string; durationError: string; completionAnnouncement: string;
+  };
+  news: {
+    demo: string; source: string; publishedAt: string; empty: string; readOriginal: string;
+    categories: Record<"china" | "world" | "economy" | "technology" | "politics" | "society", string>;
+  };
   subject: {
     psychology: string; politics: string; english: string; chapters: string;
     studiedToday: string; noStudyToday: string; lastStudied: string; notStarted: string;

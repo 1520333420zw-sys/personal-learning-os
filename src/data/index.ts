@@ -43,3 +43,5 @@ export type {
   SubjectRepository,
   TaskRepository,
 } from "./contracts";
+export type { NewsRepository } from "./contracts";
+export { createNewsRepository } from "./news";

@@ -11,3 +11,4 @@ export type {
   SubjectRepository,
   TaskRepository,
 } from "./learning-repositories";
+export type { NewsRepository } from "./news-repository";

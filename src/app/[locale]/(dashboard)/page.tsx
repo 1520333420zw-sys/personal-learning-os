@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { createCoreLearningDataContext } from "@/data";
+import { createCoreLearningDataContext, createNewsRepository } from "@/data";
 import { HomeDashboard, HomeDashboardService } from "@/features/home";
 import { getDictionary } from "@/i18n";
 import { isLocale } from "@/i18n/config";
@@ -24,6 +24,7 @@ export default async function HomePage({
     context,
     locale,
     dictionary,
+    createNewsRepository(locale),
   ).getDashboard();
 
   return (
