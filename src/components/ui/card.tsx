@@ -11,7 +11,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variantClasses: Record<CardVariant, string> = {
-  default: "border-border bg-surface shadow-soft",
+  default: "border-border bg-surface",
   muted: "border-transparent bg-surface-muted",
   elevated: "border-border bg-surface-raised shadow-card",
 };

@@ -12,7 +12,7 @@ import {
 const colors = [
   { name: "Canvas", className: "bg-canvas" },
   { name: "Surface", className: "bg-surface" },
-  { name: "Soft beige", className: "bg-surface-muted" },
+  { name: "Muted surface", className: "bg-surface-muted" },
   { name: "Accent", className: "bg-accent" },
   { name: "Success", className: "bg-success" },
   { name: "Warning", className: "bg-warning" },

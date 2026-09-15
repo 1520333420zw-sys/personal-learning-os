@@ -57,7 +57,7 @@ export function AppNavigation({ locale, dictionary }: AppNavigationProps) {
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[5.5rem] flex-col border-r border-border bg-surface/95 px-3 py-6 tablet:flex desktop:w-64 desktop:px-5">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[5.5rem] flex-col border-r border-border bg-canvas-subtle px-3 py-6 tablet:flex desktop:w-64 desktop:px-5">
         <Link
           href={"/" + locale}
           className="flex min-h-12 items-center rounded-md px-2 text-primary tablet:justify-center desktop:justify-start"
@@ -104,7 +104,7 @@ export function AppNavigation({ locale, dictionary }: AppNavigationProps) {
 
       <nav
         aria-label={dictionary.common.mobileNavigation}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/98 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgb(45_40_32/0.05)] tablet:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/98 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgb(47_48_45/0.04)] tablet:hidden"
       >
         <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
           {mobileItems.map((item) => {

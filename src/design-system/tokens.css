@@ -1,26 +1,26 @@
 :root {
   color-scheme: light;
 
-  --color-canvas: #f7f4ee;
-  --color-canvas-subtle: #f1ede5;
-  --color-surface: #fffdf9;
-  --color-surface-muted: #f5f1e9;
+  --color-canvas: #f5f5f2;
+  --color-canvas-subtle: #efefec;
+  --color-surface: #fcfcfa;
+  --color-surface-muted: #f0f0ed;
   --color-surface-raised: #ffffff;
-  --color-text-primary: #292824;
-  --color-text-secondary: #666159;
-  --color-text-muted: #756f66;
-  --color-border: #ded8ce;
-  --color-border-strong: #c9c1b5;
-  --color-accent: #756f5f;
-  --color-accent-hover: #625d50;
-  --color-accent-soft: #e9e4d9;
-  --color-success: #56705c;
-  --color-success-soft: #e3ece4;
-  --color-warning: #8a6a3e;
-  --color-warning-soft: #f4ead8;
-  --color-error: #985b54;
-  --color-error-soft: #f5e4e1;
-  --color-focus: #827a68;
+  --color-text-primary: #2f302d;
+  --color-text-secondary: #62645f;
+  --color-text-muted: #6d706a;
+  --color-border: #e2e3de;
+  --color-border-strong: #d2d4ce;
+  --color-accent: #687568;
+  --color-accent-hover: #586558;
+  --color-accent-soft: #e7ece7;
+  --color-success: #596e5c;
+  --color-success-soft: #e7eee7;
+  --color-warning: #75664f;
+  --color-warning-soft: #f1ece3;
+  --color-error: #8a5f5b;
+  --color-error-soft: #f2e8e7;
+  --color-focus: #627063;
 
   --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
@@ -59,8 +59,8 @@
   --radius-full: 9999px;
 
   --border-width: 1px;
-  --shadow-sm: 0 1px 2px rgb(45 40 32 / 0.04);
-  --shadow-md: 0 10px 30px rgb(45 40 32 / 0.06);
+  --shadow-sm: 0 1px 2px rgb(47 48 45 / 0.025);
+  --shadow-md: 0 12px 32px rgb(47 48 45 / 0.05);
 
   --duration-fast: 140ms;
   --duration-normal: 220ms;
