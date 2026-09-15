@@ -12,6 +12,13 @@ export interface LearningQueryDependencies {
   studySessions: StudySessionRepository;
 }
 
+export interface TodayLearningOverview {
+  studyMinutes: number;
+  completedTasks: number;
+  totalTasks: number;
+  dueReviews: number;
+}
+
 export class LearningQueryService {
   constructor(private readonly repositories: LearningQueryDependencies) {}
 
@@ -51,5 +58,24 @@ export class LearningQueryService {
     return sessions
       .filter((session) => session.status === "completed")
       .reduce((total, session) => total + session.durationMinutes, 0);
+  }
+
+  async getTodayOverview(
+    userId: UserId,
+    referenceDate = new Date(),
+  ): Promise<TodayLearningOverview> {
+    const date = toLocalDateKey(referenceDate);
+    const [tasks, reviews, studyMinutes] = await Promise.all([
+      this.getTodayTasks(userId, referenceDate),
+      this.getTodayReviews(userId, referenceDate),
+      this.getStudyMinutesForDate(userId, date),
+    ]);
+
+    return {
+      studyMinutes,
+      completedTasks: tasks.filter((task) => task.status === "completed").length,
+      totalTasks: tasks.length,
+      dueReviews: reviews.length,
+    };
   }
 }

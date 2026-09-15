@@ -12,4 +12,4 @@ export function getDictionary(locale: Locale): Dictionary {
   return dictionaries[locale];
 }
 
-export type { Dictionary, PageKey } from "./types";
+export type { Dictionary, HomeMessages, PageKey } from "./types";
