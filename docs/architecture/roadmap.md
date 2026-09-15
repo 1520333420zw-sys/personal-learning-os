@@ -85,3 +85,19 @@ Study Plan 和 Home 后续应从统一的任务、复习和学习记录中聚合
 - 学习进度
 
 这些聚合必须以共享领域记录为数据来源，避免由各页面分别维护重复统计。具体领域模型、Repository 和统计实现留待相应开发阶段确定。
+
+## Phase 2A Foundation
+
+Phase 2A 已建立以下可替换的数据边界：
+
+- EntityBase 与受控 StudyTargetRef
+- Subject、Chapter、KnowledgePoint
+- Plan、Task
+- StudySession 与独立的 PomodoroSession
+- 跨模块 Review
+- Question、QuestionAttempt、QuestionBank、ExamPaper
+- 面向具体查询的 Repository contracts
+- 与 UI 分离的 fixtures 和 Mock Repository implementations
+- 集中提供今日任务、到期复习、近期学习记录和单日学习时长的 LearningQueryService
+
+V1 数据组合入口使用 Mock repositories。未来接入 API 或数据库时，应替换 composition 层中的 repository implementation，而不是修改 UI 或领域类型。业务数据不以 localStorage 作为事实来源。
