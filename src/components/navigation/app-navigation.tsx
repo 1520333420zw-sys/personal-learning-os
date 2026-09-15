@@ -104,7 +104,7 @@ export function AppNavigation({ locale, dictionary }: AppNavigationProps) {
 
       <nav
         aria-label={dictionary.common.mobileNavigation}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/98 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgb(47_48_45/0.04)] tablet:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/98 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgb(41_43_46/0.04)] tablet:hidden"
       >
         <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
           {mobileItems.map((item) => {

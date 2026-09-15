@@ -198,7 +198,7 @@ function HotNews({ data, dictionary }: Omit<HomeDashboardProps, "locale">) {
               <li key={item.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <Badge variant="neutral">{item.categoryLabel}</Badge>
-                  {item.isDemo ? <Badge variant="warning">{messages.news.demo}</Badge> : null}
+                  {item.isDemo ? <Badge variant="neutral">{messages.news.demo}</Badge> : null}
                 </div>
                 <h3 className="type-label text-primary">{item.title}</h3>
                 <p className="type-small mt-2 text-secondary">{item.summary}</p>
