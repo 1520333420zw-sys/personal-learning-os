@@ -26,6 +26,8 @@ export function NavigationIcon({ name, className }: NavigationIconProps) {
       return <svg {...commonProps}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4M16 3v4M3 10h18" /></svg>;
     case "brain":
       return <svg {...commonProps}><path d="M9.5 4.5A3 3 0 0 0 4 6a3 3 0 0 0-1 5.8A3.5 3.5 0 0 0 7 17h2.5ZM14.5 4.5A3 3 0 0 1 20 6a3 3 0 0 1 1 5.8 3.5 3.5 0 0 1-4 5.2h-2.5ZM9.5 4.5V20M14.5 4.5V20" /></svg>;
+    case "politics":
+      return <svg {...commonProps}><path d="m12 3 9 5H3Z" /><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18M2 18h20" /></svg>;
     case "language":
       return <svg {...commonProps}><path d="M4 5h8M8 3v2c0 4-2 7-5 9M6 9c1.5 2 3.5 3.5 6 4M14 19l3.5-9 3.5 9M15.2 16h4.6" /></svg>;
     case "recitation":

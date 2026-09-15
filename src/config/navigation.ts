@@ -4,6 +4,7 @@ export type NavigationKey =
   | "home"
   | "plan"
   | "psychology"
+  | "politics"
   | "vocabulary"
   | "recitation"
   | "reading"
@@ -19,6 +20,7 @@ export type NavigationIcon =
   | "home"
   | "calendar"
   | "brain"
+  | "politics"
   | "language"
   | "recitation"
   | "article"
@@ -43,6 +45,7 @@ export const navigationItems: readonly NavigationItem[] = [
   { id: "home", labelKey: "home", href: "", group: "main", icon: "home", mobilePrimary: true },
   { id: "plan", labelKey: "plan", href: "/plan", group: "main", icon: "calendar", mobilePrimary: true },
   { id: "psychology", labelKey: "psychology", href: "/psychology", group: "main", icon: "brain", mobilePrimary: false },
+  { id: "politics", labelKey: "politics", href: "/politics", group: "main", icon: "politics", mobilePrimary: false },
   { id: "vocabulary", labelKey: "vocabulary", href: "/vocabulary", group: "main", icon: "language", mobilePrimary: false },
   { id: "recitation", labelKey: "recitation", href: "/recitation", group: "main", icon: "recitation", mobilePrimary: false },
   { id: "reading", labelKey: "reading", href: "/reading", group: "main", icon: "article", mobilePrimary: false },
