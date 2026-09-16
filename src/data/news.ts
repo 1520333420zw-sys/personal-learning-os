@@ -7,5 +7,7 @@ export function createNewsRepository(
   locale: Locale,
   referenceDate = new Date(),
 ): NewsRepository {
-  return new MockNewsRepository(createNewsFixtures(locale, referenceDate));
+  void locale;
+  void referenceDate;
+  return new MockNewsRepository(createNewsFixtures());
 }

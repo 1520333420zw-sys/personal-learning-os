@@ -1,11 +1,6 @@
 import { notFound } from "next/navigation";
-
-import { createCoreLearningDataContext, createNewsRepository } from "@/data";
-import { HomeDashboardContainer, HomeDashboardService } from "@/features/home";
-import { getDictionary } from "@/i18n";
+import { BetaDashboard } from "@/features/beta/dashboard";
 import { isLocale } from "@/i18n/config";
-
-export const dynamic = "force-dynamic";
 
 export default async function HomePage({
   params,
@@ -18,20 +13,5 @@ export default async function HomePage({
     notFound();
   }
 
-  const dictionary = getDictionary(locale);
-  const context = createCoreLearningDataContext();
-  const data = await new HomeDashboardService(
-    context,
-    locale,
-    dictionary,
-    createNewsRepository(locale),
-  ).getDashboard();
-
-  return (
-    <HomeDashboardContainer
-      initialData={data}
-      dictionary={dictionary}
-      locale={locale}
-    />
-  );
+  return <BetaDashboard locale={locale} />;
 }

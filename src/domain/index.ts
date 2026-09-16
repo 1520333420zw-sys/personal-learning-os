@@ -52,3 +52,4 @@ export type {
   PomodoroStatus,
 } from "./focus/pomodoro-session";
 export type { NewsCategory, NewsItem } from "./news/news-item";
+export type * from "./beta";

@@ -105,7 +105,6 @@ export interface Dictionary {
     tagline: string;
   };
   common: {
-    comingSoon: string;
     more: string;
     close: string;
     primaryNavigation: string;

@@ -7,7 +7,6 @@ export const zhCN: Dictionary = {
     tagline: "安静地学习，持续地成长。",
   },
   common: {
-    comingSoon: "将在后续阶段开放",
     more: "更多",
     close: "关闭",
     primaryNavigation: "主要导航",
@@ -58,7 +57,7 @@ export const zhCN: Dictionary = {
       subjects: "学习科目", subjectsDescription: "查看今天与最近的学习状态。",
       recent: "最近学习", recentDescription: "刚刚积累下来的学习记录。",
       pomodoro: "番茄时钟", pomodoroDescription: "选择学习科目和专注时长，安静地开始。",
-      news: "热点新闻", newsDescription: "首页信息摘要；当前内容仅用于展示。",
+      news: "热点新闻", newsDescription: "来自已配置真实新闻源的信息摘要。",
     },
     empty: { tasks: "今天还没有安排学习任务。", reviews: "今天没有待完成的复习。", sessions: "完成一次学习后，记录会出现在这里。" },
     actions: { viewPlan: "前往学习计划", openSubject: "进入学习" },

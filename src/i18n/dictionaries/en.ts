@@ -7,7 +7,6 @@ export const en: Dictionary = {
     tagline: "Learn quietly. Grow consistently.",
   },
   common: {
-    comingSoon: "Coming in a later phase",
     more: "More",
     close: "Close",
     primaryNavigation: "Primary navigation",
@@ -58,7 +57,7 @@ export const en: Dictionary = {
       subjects: "Study Subjects", subjectsDescription: "See today's activity across your subjects.",
       recent: "Recent Study", recentDescription: "A quiet record of your latest sessions.",
       pomodoro: "Pomodoro", pomodoroDescription: "Choose a subject and focus duration, then begin quietly.",
-      news: "Hot News", newsDescription: "A Home summary; the current items are for demonstration only.",
+      news: "Hot News", newsDescription: "A summary from configured live news sources.",
     },
     empty: { tasks: "There are no study tasks planned for today.", reviews: "There are no reviews due today.", sessions: "Your completed study sessions will appear here." },
     actions: { viewPlan: "Go to Study Plan", openSubject: "Open subject" },

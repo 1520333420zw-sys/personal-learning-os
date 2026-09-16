@@ -1,3 +1,4 @@
-import { createPlaceholderPage } from "@/components/layout";
-
-export default createPlaceholderPage("recitation");
+import { notFound } from "next/navigation";
+import { RecitationScreen } from "@/features/beta/learning-tools";
+import { isLocale } from "@/i18n/config";
+export default async function Page({params}:{params:Promise<{locale:string}>}){const {locale}=await params;if(!isLocale(locale))notFound();return <RecitationScreen locale={locale}/>;}
