@@ -1,5 +1,6 @@
 import type {
   Chapter,
+  CreateTaskInput,
   EntityId,
   ExamPaper,
   ISODateString,
@@ -11,6 +12,7 @@ import type {
   StudySession,
   Subject,
   Task,
+  UpdateTaskInput,
   UserId,
 } from "@/domain";
 
@@ -50,8 +52,16 @@ export interface PlanRepository {
 
 export interface TaskRepository {
   findById(userId: UserId, id: EntityId): Promise<Task | null>;
+  list(userId: UserId): Promise<readonly Task[]>;
   listByPlan(userId: UserId, planId: EntityId): Promise<readonly Task[]>;
   listByDate(userId: UserId, date: ISODateString): Promise<readonly Task[]>;
+  create(userId: UserId, input: CreateTaskInput): Promise<Task>;
+  update(
+    userId: UserId,
+    id: EntityId,
+    input: UpdateTaskInput,
+  ): Promise<Task | null>;
+  delete(userId: UserId, id: EntityId): Promise<boolean>;
 }
 
 export interface StudySessionRepository {

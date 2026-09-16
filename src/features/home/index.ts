@@ -1,5 +1,6 @@
 export {
   HomeDashboard,
+  HomeDashboardContainer,
   PomodoroWidget,
   type PomodoroCompletion,
 } from "./components";

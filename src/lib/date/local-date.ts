@@ -29,6 +29,17 @@ export function addLocalDays(
   return toLocalDateKey(date);
 }
 
+export function fromLocalDateKey(dateKey: ISODateString): Date {
+  const match = DATE_KEY_PATTERN.exec(dateKey);
+
+  if (!match) {
+    throw new Error("Expected a local date in YYYY-MM-DD format.");
+  }
+
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day), 12);
+}
+
 export function toLocalDateTime(
   dateKey: ISODateString,
   hours: number,

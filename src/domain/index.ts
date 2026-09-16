@@ -16,11 +16,14 @@ export type {
 } from "./learning/learning-content";
 export type { StudyTargetRef } from "./learning/study-target";
 export type {
+  CreateTaskInput,
   Plan,
   PlanStatus,
   Task,
   TaskPriority,
+  TaskSourceType,
   TaskStatus,
+  UpdateTaskInput,
 } from "./planning/planning";
 export type {
   ExamPaper,

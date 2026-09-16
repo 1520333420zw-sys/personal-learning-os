@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout";
 import { getDictionary } from "@/i18n";
 import { isLocale } from "@/i18n/config";
+import { LearningDataProvider } from "@/providers";
 
 export default async function DashboardLayout({
   children,
@@ -19,8 +20,10 @@ export default async function DashboardLayout({
   }
 
   return (
-    <AppShell locale={locale} dictionary={getDictionary(locale)}>
-      {children}
-    </AppShell>
+    <LearningDataProvider>
+      <AppShell locale={locale} dictionary={getDictionary(locale)}>
+        {children}
+      </AppShell>
+    </LearningDataProvider>
   );
 }

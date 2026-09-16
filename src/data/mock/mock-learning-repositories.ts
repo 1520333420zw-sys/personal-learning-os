@@ -1,5 +1,6 @@
 import type {
   Chapter,
+  CreateTaskInput,
   EntityId,
   ExamPaper,
   ISODateString,
@@ -11,6 +12,7 @@ import type {
   StudySession,
   Subject,
   Task,
+  UpdateTaskInput,
   UserId,
 } from "@/domain";
 import type {
@@ -140,13 +142,21 @@ export class MockPlanRepository implements PlanRepository {
 }
 
 export class MockTaskRepository implements TaskRepository {
-  constructor(private readonly tasks: readonly Task[]) {}
+  private tasks: Task[];
+
+  constructor(tasks: readonly Task[]) {
+    this.tasks = tasks.map((task) => copy(task));
+  }
 
   async findById(userId: UserId, id: EntityId) {
     const task = this.tasks.find(
       (item) => belongsToUser(item, userId) && item.id === id,
     );
     return task ? copy(task) : null;
+  }
+
+  async list(userId: UserId) {
+    return copy(this.tasks.filter((item) => belongsToUser(item, userId)));
   }
 
   async listByPlan(userId: UserId, planId: EntityId) {
@@ -164,6 +174,50 @@ export class MockTaskRepository implements TaskRepository {
           belongsToUser(item, userId) && item.scheduledDate === date,
       ),
     );
+  }
+
+  async create(userId: UserId, input: CreateTaskInput) {
+    const now = new Date().toISOString();
+    const task: Task = {
+      ...copy(input),
+      id: `task-${crypto.randomUUID()}`,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+      revision: 1,
+      status: "todo",
+    };
+
+    this.tasks.push(task);
+    return copy(task);
+  }
+
+  async update(userId: UserId, id: EntityId, input: UpdateTaskInput) {
+    const index = this.tasks.findIndex(
+      (item) => belongsToUser(item, userId) && item.id === id,
+    );
+
+    if (index < 0) return null;
+
+    const updated: Task = {
+      ...this.tasks[index],
+      ...copy(input),
+      updatedAt: new Date().toISOString(),
+      revision: this.tasks[index].revision + 1,
+    };
+
+    this.tasks[index] = updated;
+    return copy(updated);
+  }
+
+  async delete(userId: UserId, id: EntityId) {
+    const index = this.tasks.findIndex(
+      (item) => belongsToUser(item, userId) && item.id === id,
+    );
+
+    if (index < 0) return false;
+    this.tasks.splice(index, 1);
+    return true;
   }
 }
 

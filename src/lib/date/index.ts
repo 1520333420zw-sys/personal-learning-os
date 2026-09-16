@@ -1,1 +1,6 @@
-export { addLocalDays, toLocalDateKey, toLocalDateTime } from "./local-date";
+export {
+  addLocalDays,
+  fromLocalDateKey,
+  toLocalDateKey,
+  toLocalDateTime,
+} from "./local-date";

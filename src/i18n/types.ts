@@ -41,6 +41,63 @@ export interface HomeMessages {
   };
 }
 
+export interface StudyPlanMessages {
+  title: string;
+  description: string;
+  today: string;
+  previousDay: string;
+  nextDay: string;
+  chooseDate: string;
+  addTask: string;
+  editTask: string;
+  deleteTask: string;
+  taskName: string;
+  taskDescription: string;
+  subject: string;
+  noSubject: string;
+  date: string;
+  plannedDuration: string;
+  customDuration: string;
+  priority: string;
+  save: string;
+  cancel: string;
+  confirmDelete: string;
+  confirmDeleteDescription: string;
+  summary: {
+    total: string;
+    completed: string;
+    remaining: string;
+    planned: string;
+    tasks: string;
+    minutes: string;
+  };
+  filters: {
+    label: string;
+    all: string;
+    todo: string;
+    in_progress: string;
+    completed: string;
+    allSubjects: string;
+  };
+  status: {
+    todo: string;
+    in_progress: string;
+    completed: string;
+    start: string;
+    complete: string;
+    restore: string;
+  };
+  priorities: { low: string; medium: string; high: string };
+  empty: { day: string; filtered: string };
+  validation: { title: string; duration: string };
+  dialog: { createTitle: string; editTitle: string };
+  loading: string;
+  demoTasks: Record<
+    "psychology" | "politics" | "vocabulary" | "reading",
+    { title: string; description: string }
+  >;
+}
+
 export interface Dictionary {
   brand: {
     name: string;
@@ -60,4 +117,5 @@ export interface Dictionary {
   navigation: Record<NavigationKey, string>;
   pages: Record<PageKey, PageMessage>;
   home: HomeMessages;
+  studyPlan: StudyPlanMessages;
 }

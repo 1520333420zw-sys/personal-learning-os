@@ -37,6 +37,9 @@ export class HomeDashboardService {
       ]);
     const messages = this.dictionary.home;
     const presenter = new StudyTargetPresenter(repositories, userId, messages);
+    const subjectNames = new Map(
+      subjects.map((subject) => [subject.id, presenter.subjectName(subject.id)]),
+    );
 
     return {
       dateLabel: new Intl.DateTimeFormat(this.locale, {
@@ -46,10 +49,12 @@ export class HomeDashboardService {
       }).format(referenceDate),
       overview,
       tasks: await Promise.all(
-        tasks.map(async (task) => ({
+        tasks.slice(0, 5).map(async (task) => ({
           id: task.id,
-          title: await presenter.resolve(task.target),
-          targetType: messages.targetType[task.target.type],
+          title: this.taskTitle(task.id, task.title),
+          targetType:
+            (task.subjectId && subjectNames.get(task.subjectId)) ||
+            messages.targetType[task.target.type],
           estimatedMinutes: task.estimatedMinutes,
           priority: task.priority,
           status: task.status,
@@ -126,5 +131,18 @@ export class HomeDashboardService {
           }).format(new Date(latest.startedAt))
         : this.dictionary.home.subject.notStarted,
     };
+  }
+
+  private taskTitle(id: string, fallback: string) {
+    const demoKey = {
+      "task-psychology-today": "psychology",
+      "task-politics-today": "politics",
+      "task-vocabulary-today": "vocabulary",
+      "task-reading-tomorrow": "reading",
+    }[id] as keyof Dictionary["studyPlan"]["demoTasks"] | undefined;
+
+    return demoKey
+      ? this.dictionary.studyPlan.demoTasks[demoKey].title
+      : fallback.replace(/^Demo · /, "");
   }
 }

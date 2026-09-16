@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { createCoreLearningDataContext, createNewsRepository } from "@/data";
-import { HomeDashboard, HomeDashboardService } from "@/features/home";
+import { HomeDashboardContainer, HomeDashboardService } from "@/features/home";
 import { getDictionary } from "@/i18n";
 import { isLocale } from "@/i18n/config";
 
@@ -28,6 +28,10 @@ export default async function HomePage({
   ).getDashboard();
 
   return (
-    <HomeDashboard data={data} dictionary={dictionary} locale={locale} />
+    <HomeDashboardContainer
+      initialData={data}
+      dictionary={dictionary}
+      locale={locale}
+    />
   );
 }

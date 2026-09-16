@@ -94,7 +94,19 @@ function TodayTasks({ data, dictionary, locale }: HomeDashboardProps) {
   const messages = dictionary.home;
   return (
     <section aria-labelledby="today-tasks-title">
-      <SectionHeader titleId="today-tasks-title" title={messages.sections.tasks} description={messages.sections.tasksDescription} />
+      <SectionHeader
+        titleId="today-tasks-title"
+        title={messages.sections.tasks}
+        description={messages.sections.tasksDescription}
+        action={
+          <Link
+            href={`/${locale}/plan`}
+            className="type-label inline-flex min-h-11 items-center rounded-md text-accent underline-offset-4 hover:underline"
+          >
+            {messages.actions.viewPlan} →
+          </Link>
+        }
+      />
       <div className="mt-5 space-y-3">
         {data.tasks.length ? data.tasks.map((task) => (
           <Card key={task.id} padding="sm" variant={task.status === "completed" ? "muted" : "default"}>
