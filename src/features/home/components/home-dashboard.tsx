@@ -16,8 +16,10 @@ interface HomeDashboardProps {
 const priorityVariant = {
   low: "neutral",
   medium: "accent",
-  high: "warning",
+  high: "warm",
 } as const;
+
+const newsCategoryVariants = ["warm", "neutral", "rose"] as const;
 
 const statusVariant = {
   todo: "neutral",
@@ -62,14 +64,22 @@ function TodayOverview({ data, dictionary }: Omit<HomeDashboardProps, "locale">)
   const items = [
     { label: overview.studyTime, value: data.overview.studyMinutes, suffix: overview.minutes },
     { label: overview.tasks, value: `${data.overview.completedTasks} / ${data.overview.totalTasks}` },
-    { label: overview.reviews, value: data.overview.dueReviews },
+    { label: overview.reviews, value: data.overview.dueReviews, decorative: true },
   ];
 
   return (
     <section aria-label={overview.studyTime} className="grid grid-cols-3 overflow-hidden rounded-xl border border-border bg-surface shadow-soft">
       {items.map((item, index) => (
         <div key={item.label} className={cn("min-w-0 px-3 py-5 tablet:px-6 tablet:py-6", index > 0 && "border-l border-border")}>
-          <p className="type-caption truncate text-muted tablet:type-small">{item.label}</p>
+          <p
+            className={cn(
+              "type-caption truncate text-muted tablet:type-small",
+              item.decorative &&
+                "inline-flex rounded-full bg-warm-oat-soft px-2 py-0.5 text-primary",
+            )}
+          >
+            {item.label}
+          </p>
           <p className="mt-2 flex flex-wrap items-baseline gap-1 text-xl font-semibold tracking-[-0.02em] text-primary tablet:text-2xl">
             {item.value}
             {item.suffix ? <span className="text-xs font-normal text-secondary tablet:text-sm">{item.suffix}</span> : null}
@@ -194,10 +204,16 @@ function HotNews({ data, dictionary }: Omit<HomeDashboardProps, "locale">) {
       <Card className="mt-5" padding="sm">
         {data.news.length ? (
           <ul className="divide-y divide-border">
-            {data.news.map((item) => (
+            {data.news.map((item, index) => (
               <li key={item.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <Badge variant="neutral">{item.categoryLabel}</Badge>
+                  <Badge
+                    variant={
+                      newsCategoryVariants[index % newsCategoryVariants.length]
+                    }
+                  >
+                    {item.categoryLabel}
+                  </Badge>
                   {item.isDemo ? <Badge variant="neutral">{messages.news.demo}</Badge> : null}
                 </div>
                 <h3 className="type-label text-primary">{item.title}</h3>

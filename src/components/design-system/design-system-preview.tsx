@@ -18,6 +18,15 @@ const colors = [
   { name: "Warning", className: "bg-warning" },
 ];
 
+const decorativeColors = [
+  { name: "Warm Oat", className: "bg-warm-oat" },
+  { name: "Warm Oat Soft", className: "bg-warm-oat-soft" },
+  { name: "Muted Apricot", className: "bg-muted-apricot" },
+  { name: "Muted Apricot Soft", className: "bg-muted-apricot-soft" },
+  { name: "Dusty Rose", className: "bg-dusty-rose" },
+  { name: "Dusty Rose Soft", className: "bg-dusty-rose-soft" },
+];
+
 export function DesignSystemPreview() {
   return (
     <main className="app-container">
@@ -42,7 +51,7 @@ export function DesignSystemPreview() {
             titleId="colors-title"
             eyebrow="Foundation"
             title="Semantic colors"
-            description="低饱和的暖色中性色构成主要界面，状态色仅在需要表达意义时出现。"
+            description="清冷灰白构成主界面；状态色只在表达真实语义时使用。"
           />
           <div
             className="mt-6 grid grid-cols-2 gap-3 tablet:grid-cols-4 desktop:grid-cols-6"
@@ -55,6 +64,30 @@ export function DesignSystemPreview() {
                 <p className="type-small font-medium text-secondary">{color.name}</p>
               </Card>
             ))}
+          </div>
+          <div className="mt-8">
+            <p className="type-label text-primary">
+              Decorative / Secondary accents
+            </p>
+            <p className="type-small mt-1 max-w-2xl text-secondary">
+              Small, low-saturation accents for labels and decorative details;
+              they are not the primary accent or status colors.
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-3 tablet:grid-cols-3 desktop:grid-cols-6">
+              {decorativeColors.map((color) => (
+                <Card key={color.name} padding="sm">
+                  <div
+                    className={
+                      "mb-4 aspect-[4/3] rounded-md border border-border " +
+                      color.className
+                    }
+                  />
+                  <p className="type-small font-medium text-secondary">
+                    {color.name}
+                  </p>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -128,6 +161,9 @@ export function DesignSystemPreview() {
                 <Badge variant="success">Complete</Badge>
                 <Badge variant="warning">Review soon</Badge>
                 <Badge variant="error">Needs attention</Badge>
+                <Badge variant="warm">Warm</Badge>
+                <Badge variant="apricot">Apricot</Badge>
+                <Badge variant="rose">Rose</Badge>
               </div>
               <Divider className="my-8" />
               <div className="grid gap-5">

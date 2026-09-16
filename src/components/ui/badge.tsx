@@ -2,7 +2,15 @@ import type { HTMLAttributes } from "react";
 
 import { cn } from "@/lib/cn";
 
-type BadgeVariant = "neutral" | "accent" | "success" | "warning" | "error";
+type BadgeVariant =
+  | "neutral"
+  | "accent"
+  | "success"
+  | "warning"
+  | "error"
+  | "warm"
+  | "apricot"
+  | "rose";
 type BadgeSize = "sm" | "md";
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -16,6 +24,9 @@ const variantClasses: Record<BadgeVariant, string> = {
   success: "bg-success-soft text-success",
   warning: "bg-warning-soft text-warning",
   error: "bg-error-soft text-error",
+  warm: "bg-warm-oat-soft text-primary",
+  apricot: "bg-muted-apricot-soft text-primary",
+  rose: "bg-dusty-rose-soft text-primary",
 };
 
 const sizeClasses: Record<BadgeSize, string> = {

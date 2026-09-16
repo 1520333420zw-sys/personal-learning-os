@@ -21,6 +21,12 @@
   --color-error: #895f62;
   --color-error-soft: #f3e9ea;
   --color-focus: #70777f;
+  --color-warm-oat: #d8d0c5;
+  --color-warm-oat-soft: #f2eeea;
+  --color-muted-apricot: #c9a995;
+  --color-muted-apricot-soft: #f3eae4;
+  --color-dusty-rose: #b99c9b;
+  --color-dusty-rose-soft: #f1e8e8;
 
   --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
@@ -100,6 +106,12 @@
   --color-warning-soft: var(--color-warning-soft);
   --color-error: var(--color-error);
   --color-error-soft: var(--color-error-soft);
+  --color-warm-oat: var(--color-warm-oat);
+  --color-warm-oat-soft: var(--color-warm-oat-soft);
+  --color-muted-apricot: var(--color-muted-apricot);
+  --color-muted-apricot-soft: var(--color-muted-apricot-soft);
+  --color-dusty-rose: var(--color-dusty-rose);
+  --color-dusty-rose-soft: var(--color-dusty-rose-soft);
 
   --font-sans: var(--font-sans);
 
