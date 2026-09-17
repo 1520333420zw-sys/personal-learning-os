@@ -26,8 +26,7 @@ function isCurrentPath(pathname: string, locale: Locale, item: NavigationItem) {
 
 export function AppNavigation({ locale, dictionary }: AppNavigationProps) {
   const pathname = usePathname();
-  const mainItems = navigationItems.filter((item) => item.group === "main");
-  const lifeItems = navigationItems.filter((item) => item.group === "life");
+  const groups = (["today", "learn", "knowledge", "life"] as const).map((id) => ({ id, items: navigationItems.filter((item) => item.group === id) }));
   const mobileItems = navigationItems.filter((item) => item.mobilePrimary);
   const moreItems = navigationItems.filter((item) => !item.mobilePrimary);
   const nextLocale = locale === "zh-CN" ? "en" : "zh-CN";
@@ -57,7 +56,7 @@ export function AppNavigation({ locale, dictionary }: AppNavigationProps) {
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[5.5rem] flex-col border-r border-border bg-canvas-subtle px-3 py-6 tablet:flex desktop:w-64 desktop:px-5">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[5.5rem] flex-col overflow-y-auto border-r border-border bg-canvas-subtle px-3 py-6 tablet:flex desktop:w-64 desktop:px-5">
         <Link
           href={"/" + locale}
           className="flex min-h-12 items-center rounded-md px-2 text-primary tablet:justify-center desktop:justify-start"
@@ -66,17 +65,11 @@ export function AppNavigation({ locale, dictionary }: AppNavigationProps) {
           <span className="type-label hidden tablet:inline desktop:hidden">{dictionary.brand.shortName}</span>
         </Link>
 
-        <nav aria-label={dictionary.common.primaryNavigation} className="mt-8 grid gap-1">
-          {mainItems.map(renderSidebarLink)}
-        </nav>
+        <div className="mt-6 grid gap-5">
+          {groups.map((group) => <div key={group.id}><p className="type-caption mb-2 hidden px-3 uppercase tracking-[0.12em] text-muted desktop:block">{group.id}</p><nav aria-label={`${dictionary.common.primaryNavigation} · ${group.id}`} className="grid gap-1">{group.items.map(renderSidebarLink)}</nav></div>)}
+        </div>
 
-        <div className="mt-auto">
-          <p className="type-caption mb-2 hidden px-3 uppercase tracking-[0.12em] text-muted desktop:block">
-            Life
-          </p>
-          <nav aria-label={dictionary.common.lifeNavigation} className="grid gap-1">
-            {lifeItems.map(renderSidebarLink)}
-          </nav>
+        <div className="mt-auto pt-5">
           <Link
             href={localeHref}
             hrefLang={nextLocale}

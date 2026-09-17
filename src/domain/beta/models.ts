@@ -2,7 +2,7 @@ export type OwnerId = string;
 export type BetaId = string;
 
 export interface BetaEntity { id: BetaId; ownerId: OwnerId; createdAt: string; updatedAt: string; }
-export interface BetaSubject extends BetaEntity { slug: "psychology" | "politics" | "english"; name: string; nameEn: string; }
+export interface BetaSubject extends BetaEntity { slug: string; name: string; nameEn: string; learningMode?: string; }
 export interface BetaChapter extends BetaEntity { subjectId: BetaId; title: string; titleEn: string; order: number; }
 export interface BetaUnit extends BetaEntity { subjectId: BetaId; chapterId: BetaId; title: string; titleEn: string; order: number; }
 export type Mastery = "new" | "learning" | "reviewing" | "mastered";
@@ -11,13 +11,17 @@ export interface BetaKnowledgePoint extends BetaEntity {
   coreConcept: string; keyPoints: string; pitfalls: string; personalNote: string;
   mastery: Mastery; favorite: boolean; lastStudiedAt?: string; nextReviewAt?: string;
   unitId?: BetaId; frequency?: "standard" | "high";
+  explanation?: string; explanationEn?: string; importance?: 1 | 2 | 3 | 4 | 5;
+  relatedPointIds?: BetaId[]; contentVersion?: string;
+  learningBlocks?: { kind: string; title: string; body: string }[];
 }
 export type BetaTaskStatus = "todo" | "in_progress" | "completed";
 export type BetaTaskPriority = "low" | "medium" | "high";
 export interface BetaTask extends BetaEntity {
   title: string; description: string; subjectId?: BetaId; chapterId?: BetaId; date: string;
   plannedMinutes: number; actualMinutes: number; priority: BetaTaskPriority; status: BetaTaskStatus;
-  completedAt?: string; sourceType: "manual" | "review" | "system";
+  completedAt?: string; sourceType: "manual" | "review" | "system" | "ai";
+  planningControl?: "manual" | "adjustable" | "locked";
 }
 export interface BetaStudySession extends BetaEntity {
   subjectId?: BetaId; chapterId?: BetaId; taskId?: BetaId; startedAt: string; endedAt: string; durationMinutes: number;
@@ -93,8 +97,16 @@ export interface BetaNote extends BetaEntity {
   linkedType?: string; linkedId?: BetaId; favorite: boolean;
 }
 export interface BetaBook extends BetaEntity {
-  title: string; author: string; status: "want" | "reading" | "finished"; progress: number;
+  title: string; author: string; status: "want" | "reading" | "finished" | "paused"; progress: number;
   startDate?: string; finishDate?: string; rating?: number; notes: string; favorite: boolean; pdfDocumentId?: BetaId;
+  providerId?: string; sourceUrl?: string; isbn?: string; coverUrl?: string; firstPublishYear?: number; language?: string;
+}
+export interface PlanningDay { date: string; kind: "work" | "rest" | "half" | "special"; availableMinutes: number; energy: "low" | "medium" | "high"; workHours?: string; }
+export interface PlanningProfile {
+  goal: string; examDate?: string; dailyMinutes: number; weeklyGoalMinutes: number;
+  subjectPriorities: Record<string, number>; weakSubjectIds: string[];
+  workHours: string; sleepHours: string; restPreferences: string;
+  days: PlanningDay[]; updatedAt: string;
 }
 export interface BetaResource extends BetaEntity {
   name: string; url: string; category: "website" | "course" | "youtube" | "podcast" | "tool" | "article";
@@ -110,7 +122,7 @@ export interface BetaPomodoroRuntime {
   targetEndAt?: string; remainingSeconds: number; status: "running" | "paused";
 }
 export interface BetaState {
-  version: 2; ownerId: OwnerId; subjects: BetaSubject[]; chapters: BetaChapter[]; units: BetaUnit[];
+  version: 3; ownerId: OwnerId; subjects: BetaSubject[]; chapters: BetaChapter[]; units: BetaUnit[];
   knowledgePoints: BetaKnowledgePoint[]; tasks: BetaTask[]; studySessions: BetaStudySession[];
   pomodoroSessions: BetaPomodoroSession[]; studyProgress: BetaStudyProgress[];
   reviewItems: BetaReviewItem[]; questions: BetaQuestion[]; questionAttempts: BetaQuestionAttempt[];
@@ -120,4 +132,6 @@ export interface BetaState {
   pdfDocuments: BetaPdfDocument[]; pdfNotes: BetaPdfNote[];
   resources: BetaResource[]; habits: BetaHabit[]; exercises: BetaExercise[]; sleep: BetaSleep[];
   finance: BetaFinanceEntry[]; goals: BetaGoal[]; pomodoroRuntime?: BetaPomodoroRuntime;
+  planningProfile?: PlanningProfile;
+  contentPacks?: Record<string, string>;
 }
