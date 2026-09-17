@@ -20,7 +20,7 @@ export const zhCN: Dictionary = {
     plan: "学习计划",
     psychology: "312 心理学",
     politics: "政治",
-    vocabulary: "单词",
+    vocabulary: "英语",
     recitation: "背诵",
     reading: "外刊阅读",
     books: "书籍",

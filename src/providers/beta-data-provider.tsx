@@ -2,7 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { BetaState } from "@/domain/beta";
-import { BETA_STORAGE_KEY, createInitialBetaState, isBetaState, loadBetaState, saveBetaState } from "@/data/browser";
+import { BETA_STORAGE_KEY, createInitialBetaState, loadBetaState, migrateBetaState, saveBetaState } from "@/data/browser";
+import { browserPdfStorage } from "@/data/storage/pdf-storage";
 
 interface BetaDataValue {
   state: BetaState;
@@ -34,11 +35,14 @@ export function BetaDataProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (ready) saveBetaState(state);
+  }, [ready, state]);
+
   const mutate = useCallback((recipe: (draft: BetaState) => void) => {
     setState((current) => {
       const next = structuredClone(current);
       recipe(next);
-      saveBetaState(next);
       return next;
     });
   }, []);
@@ -46,9 +50,9 @@ export function BetaDataProvider({ children }: { children: ReactNode }) {
   const importJson = useCallback((json: string) => {
     try {
       const parsed: unknown = JSON.parse(json);
-      if (!isBetaState(parsed)) return { ok: false as const, error: "INVALID_DATA" };
-      saveBetaState(parsed);
-      setState(parsed);
+      const migrated = migrateBetaState(parsed);
+      saveBetaState(migrated);
+      setState(migrated);
       return { ok: true as const };
     } catch {
       return { ok: false as const, error: "INVALID_JSON" };
@@ -59,6 +63,7 @@ export function BetaDataProvider({ children }: { children: ReactNode }) {
     const next = createInitialBetaState();
     saveBetaState(next);
     setState(next);
+    void browserPdfStorage.clear().catch(() => undefined);
   }, []);
 
   const value = useMemo<BetaDataValue>(() => ({

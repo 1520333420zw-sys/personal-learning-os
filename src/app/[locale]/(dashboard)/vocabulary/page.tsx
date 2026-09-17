@@ -1,4 +1,4 @@
 import { notFound } from "next/navigation";
-import { VocabularyScreen } from "@/features/beta/learning-tools";
+import { redirect } from "next/navigation";
 import { isLocale } from "@/i18n/config";
-export default async function Page({params}:{params:Promise<{locale:string}>}){const {locale}=await params;if(!isLocale(locale))notFound();return <VocabularyScreen locale={locale}/>;}
+export default async function Page({params}:{params:Promise<{locale:string}>}){const {locale}=await params;if(!isLocale(locale))notFound();redirect(`/${locale}/english`);}

@@ -7,6 +7,7 @@ import type {
   BetaSubject,
   OwnerId,
 } from "@/domain/beta";
+import { createOutlineUnits } from "./learning-outline";
 
 export const BETA_STORAGE_KEY = "personal-learning-os:beta:v1";
 export const LOCAL_OWNER_ID: OwnerId = "local-owner";
@@ -97,6 +98,13 @@ export function createInitialBetaState(): BetaState {
     knowledge("kp-contradiction", politics, "politics-marxism", "矛盾的普遍性与特殊性", "Universality and Particularity of Contradiction", "矛盾具有普遍性，具体矛盾又有其特殊性。", "分析具体问题时把一般原理与具体条件结合。", "不能用抽象共性替代具体分析。"),
     knowledge("kp-modern-history", politics, "politics-history", "近代中国社会性质", "Modern Chinese Social Conditions", "理解近代中国社会结构及主要矛盾是分析历史任务的基础。", "把历史阶段、主要矛盾与任务联系起来。", "避免脱离时代条件评价历史事件。"),
   ];
+  const pointUnits: Record<string, string> = {
+    "kp-sensation-threshold": "unit-psych-general-3", "kp-working-memory": "unit-psych-general-6",
+    "kp-reinforcement": "unit-psych-education-2", "kp-experiment-variables": "unit-psych-experimental-2",
+    "kp-marx-practice": "unit-politics-marxism-4", "kp-contradiction": "unit-politics-marxism-3",
+    "kp-modern-history": "unit-politics-history-1",
+  };
+  for (const point of knowledgePoints) point.unitId = pointUnits[point.id];
   const questions = [
     question("q-psych-1", psychology, "psych-general", "kp-sensation-threshold", "刚好能够引起感觉的最小刺激量通常称为？", [{id:"a",text:"绝对感觉阈限"},{id:"b",text:"差别阈限"},{id:"c",text:"适应水平"},{id:"d",text:"信号强度"}], ["a"], "绝对感觉阈限指刚好能够引起感觉的最小刺激量。"),
     question("q-psych-2", psychology, "psych-general", "kp-working-memory", "工作记忆的主要特点是？", [{id:"a",text:"永久保存信息"},{id:"b",text:"暂时保持并加工信息"},{id:"c",text:"只保存视觉信息"},{id:"d",text:"容量无限"}], ["b"], "工作记忆同时承担短时保持和加工，且容量有限。"),
@@ -109,9 +117,10 @@ export function createInitialBetaState(): BetaState {
     question("q-english-3", english, "english-vocabulary", "", "The word ‘evaluate’ most nearly means to assess something carefully.", [{id:"true",text:"True"},{id:"false",text:"False"}], ["true"], "Evaluate means to judge or assess quality, value, or significance.", "true_false"),
   ];
   return {
-    version: 1, ownerId: LOCAL_OWNER_ID, subjects, chapters, knowledgePoints,
+    version: 2, ownerId: LOCAL_OWNER_ID, subjects, chapters, units: createOutlineUnits(), knowledgePoints,
     tasks: [], studySessions: [], pomodoroSessions: [], studyProgress: [], reviewItems: [], questions, questionAttempts: [], wrongQuestions: [],
-    favorites: [], vocabulary: [], reading: [], readingNotes: [], recitations: [], notes: [], books: [], resources: [],
+    favorites: [], vocabulary: [], reading: [], readingNotes: [], recitations: [], notes: [], books: [],
+    englishContent: [], subjectiveQuestions: [], currentAffairs: [], pdfDocuments: [], pdfNotes: [], resources: [],
     habits: [], exercises: [], sleep: [], finance: [], goals: [],
   };
 }
@@ -123,12 +132,7 @@ export function loadBetaState(): BetaState {
   try {
     const value: unknown = JSON.parse(raw);
     if (!isBetaState(value)) throw new Error("Invalid beta data");
-    const initial = createInitialBetaState();
-    return { ...initial, ...value,
-      pomodoroSessions: value.pomodoroSessions ?? [],
-      studyProgress: value.studyProgress ?? [],
-      readingNotes: value.readingNotes ?? [],
-    };
+    return migrateBetaState(value);
   } catch {
     return createInitialBetaState();
   }
@@ -138,10 +142,41 @@ export function saveBetaState(state: BetaState): void {
   window.localStorage.setItem(BETA_STORAGE_KEY, JSON.stringify(state));
 }
 
-export function isBetaState(value: unknown): value is BetaState {
+export function isBetaState(value: unknown): value is BetaState | (Omit<BetaState, "version" | "units" | "englishContent" | "subjectiveQuestions" | "currentAffairs" | "pdfDocuments" | "pdfNotes"> & { version: 1 }) {
   if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<BetaState>;
-  return candidate.version === 1 && typeof candidate.ownerId === "string" &&
+  const candidate = value as { version?: number; ownerId?: unknown; subjects?: unknown; tasks?: unknown; studySessions?: unknown; notes?: unknown };
+  return (candidate.version === 1 || candidate.version === 2) && typeof candidate.ownerId === "string" &&
     Array.isArray(candidate.subjects) && Array.isArray(candidate.tasks) &&
     Array.isArray(candidate.studySessions) && Array.isArray(candidate.notes);
+}
+
+export function migrateBetaState(value: unknown): BetaState {
+  if (!isBetaState(value)) throw new Error("Invalid beta data");
+  const initial = createInitialBetaState();
+  const prior = value as Partial<BetaState>;
+  const mergeCatalog = <T extends { id: string }>(saved: T[] | undefined, defaults: T[]) => {
+    const ids = new Set((saved ?? []).map((item) => item.id));
+    return [...(saved ?? []), ...defaults.filter((item) => !ids.has(item.id))];
+  };
+  return {
+    ...initial, ...prior, version: 2,
+    subjects: mergeCatalog(prior.subjects, initial.subjects),
+    chapters: mergeCatalog(prior.chapters, initial.chapters),
+    units: mergeCatalog(prior.units, initial.units),
+    knowledgePoints: mergeCatalog(prior.knowledgePoints, initial.knowledgePoints).map((point) => ({
+      ...point, unitId: point.unitId ?? initial.knowledgePoints.find((seed) => seed.id === point.id)?.unitId,
+    })),
+    questions: mergeCatalog(prior.questions, initial.questions),
+    tasks: prior.tasks ?? [], studySessions: prior.studySessions ?? [],
+    reviewItems: prior.reviewItems ?? [], questionAttempts: prior.questionAttempts ?? [],
+    wrongQuestions: prior.wrongQuestions ?? [], favorites: prior.favorites ?? [],
+    vocabulary: prior.vocabulary ?? [], reading: prior.reading ?? [],
+    recitations: prior.recitations ?? [], notes: prior.notes ?? [], books: prior.books ?? [],
+    resources: prior.resources ?? [], habits: prior.habits ?? [], exercises: prior.exercises ?? [],
+    sleep: prior.sleep ?? [], finance: prior.finance ?? [], goals: prior.goals ?? [],
+    englishContent: prior.englishContent ?? [], subjectiveQuestions: prior.subjectiveQuestions ?? [], currentAffairs: prior.currentAffairs ?? [],
+    pdfDocuments: prior.pdfDocuments ?? [], pdfNotes: prior.pdfNotes ?? [],
+    pomodoroSessions: prior.pomodoroSessions ?? [], studyProgress: prior.studyProgress ?? [],
+    readingNotes: prior.readingNotes ?? [],
+  };
 }

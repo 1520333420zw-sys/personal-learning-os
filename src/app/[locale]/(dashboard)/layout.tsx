@@ -5,6 +5,7 @@ import { AppShell } from "@/components/layout";
 import { getDictionary } from "@/i18n";
 import { isLocale } from "@/i18n/config";
 import { BetaDataProvider } from "@/providers";
+import { AiAssistant } from "@/features/beta/ai-assistant";
 
 export default async function DashboardLayout({
   children,
@@ -23,6 +24,7 @@ export default async function DashboardLayout({
     <BetaDataProvider>
       <AppShell locale={locale} dictionary={getDictionary(locale)}>
         {children}
+        <AiAssistant locale={locale} />
       </AppShell>
     </BetaDataProvider>
   );

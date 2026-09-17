@@ -4,11 +4,13 @@ export type BetaId = string;
 export interface BetaEntity { id: BetaId; ownerId: OwnerId; createdAt: string; updatedAt: string; }
 export interface BetaSubject extends BetaEntity { slug: "psychology" | "politics" | "english"; name: string; nameEn: string; }
 export interface BetaChapter extends BetaEntity { subjectId: BetaId; title: string; titleEn: string; order: number; }
+export interface BetaUnit extends BetaEntity { subjectId: BetaId; chapterId: BetaId; title: string; titleEn: string; order: number; }
 export type Mastery = "new" | "learning" | "reviewing" | "mastered";
 export interface BetaKnowledgePoint extends BetaEntity {
   subjectId: BetaId; chapterId: BetaId; title: string; titleEn: string;
   coreConcept: string; keyPoints: string; pitfalls: string; personalNote: string;
   mastery: Mastery; favorite: boolean; lastStudiedAt?: string; nextReviewAt?: string;
+  unitId?: BetaId; frequency?: "standard" | "high";
 }
 export type BetaTaskStatus = "todo" | "in_progress" | "completed";
 export type BetaTaskPriority = "low" | "medium" | "high";
@@ -18,7 +20,7 @@ export interface BetaTask extends BetaEntity {
   completedAt?: string; sourceType: "manual" | "review" | "system";
 }
 export interface BetaStudySession extends BetaEntity {
-  subjectId?: BetaId; taskId?: BetaId; startedAt: string; endedAt: string; durationMinutes: number;
+  subjectId?: BetaId; chapterId?: BetaId; taskId?: BetaId; startedAt: string; endedAt: string; durationMinutes: number;
   sessionType: "learning" | "review" | "practice" | "recitation" | "reading"; completed: boolean;
 }
 export interface BetaPomodoroSession extends BetaEntity {
@@ -51,7 +53,7 @@ export interface BetaVocabulary extends BetaEntity {
   word: string; phonetic: string; meaning: string; example: string;
   examType: "english1" | "english2" | "cet4" | "cet6" | "general";
   familiarity: "new" | "vague" | "known" | "mastered"; favorite: boolean;
-  reviewCount: number; nextReviewAt?: string;
+  reviewCount: number; nextReviewAt?: string; lastReviewedAt?: string; tags?: string[];
 }
 export interface BetaReading extends BetaEntity {
   title: string; source: string; url: string; publishedDate: string; category: string;
@@ -61,15 +63,38 @@ export interface BetaReading extends BetaEntity {
 export interface BetaReadingNote extends BetaEntity { readingId: BetaId; content: string; excerpt: string; }
 export interface BetaRecitation extends BetaEntity {
   title: string; category: string; content: string; status: "today" | "review" | "mastered";
-  favorite: boolean; nextReviewAt?: string;
+  favorite: boolean; nextReviewAt?: string; subjectId?: BetaId; chapterId?: BetaId;
+  knowledgePointId?: BetaId; type?: "knowledge" | "vocabulary" | "expression" | "writing" | "custom";
+  lastReviewedAt?: string; reviewCount?: number; mastery?: Mastery;
 }
+export type EnglishContentKind = "sentence" | "grammar" | "comprehension" | "translation" | "writing";
+export interface BetaEnglishContent extends BetaEntity {
+  examType: BetaVocabulary["examType"]; kind: EnglishContentKind; title: string; content: string;
+  note: string; mastery: Mastery; favorite: boolean; lastStudiedAt?: string;
+  writingType?: "template" | "sentence" | "expression" | "essay";
+}
+export interface BetaSubjectiveQuestion extends BetaEntity {
+  subjectId: BetaId; chapterId: BetaId; kind: "short" | "essay";
+  prompt: string; thinking: string; keywords: string[]; referencePoints: string;
+  ownAnswer: string; source: string;
+}
+export interface BetaCurrentAffair extends BetaEntity {
+  title: string; date: string; source: string; event: string; background: string;
+  knowledgePointIds: BetaId[]; politicalChapterIds: BetaId[]; originalUrl: string;
+}
+export interface BetaPdfDocument extends BetaEntity {
+  ownerType: "book" | "subject"; ownerRecordId: BetaId; subjectId?: BetaId;
+  chapterId?: BetaId; filename: string; mimeType: "application/pdf"; size: number;
+  storageKey: string; storage: "indexeddb" | "r2"; pageCount?: number; currentPage: number;
+}
+export interface BetaPdfNote extends BetaEntity { documentId: BetaId; page: number; content: string; knowledgeNoteId?: BetaId; }
 export interface BetaNote extends BetaEntity {
   title: string; content: string; tags: string[]; subjectId?: BetaId;
   linkedType?: string; linkedId?: BetaId; favorite: boolean;
 }
 export interface BetaBook extends BetaEntity {
   title: string; author: string; status: "want" | "reading" | "finished"; progress: number;
-  startDate?: string; finishDate?: string; rating?: number; notes: string; favorite: boolean;
+  startDate?: string; finishDate?: string; rating?: number; notes: string; favorite: boolean; pdfDocumentId?: BetaId;
 }
 export interface BetaResource extends BetaEntity {
   name: string; url: string; category: "website" | "course" | "youtube" | "podcast" | "tool" | "article";
@@ -85,12 +110,14 @@ export interface BetaPomodoroRuntime {
   targetEndAt?: string; remainingSeconds: number; status: "running" | "paused";
 }
 export interface BetaState {
-  version: 1; ownerId: OwnerId; subjects: BetaSubject[]; chapters: BetaChapter[];
+  version: 2; ownerId: OwnerId; subjects: BetaSubject[]; chapters: BetaChapter[]; units: BetaUnit[];
   knowledgePoints: BetaKnowledgePoint[]; tasks: BetaTask[]; studySessions: BetaStudySession[];
   pomodoroSessions: BetaPomodoroSession[]; studyProgress: BetaStudyProgress[];
   reviewItems: BetaReviewItem[]; questions: BetaQuestion[]; questionAttempts: BetaQuestionAttempt[];
   wrongQuestions: BetaWrongQuestion[]; favorites: BetaFavorite[]; vocabulary: BetaVocabulary[];
   reading: BetaReading[]; readingNotes: BetaReadingNote[]; recitations: BetaRecitation[]; notes: BetaNote[]; books: BetaBook[];
+  englishContent: BetaEnglishContent[]; subjectiveQuestions: BetaSubjectiveQuestion[]; currentAffairs: BetaCurrentAffair[];
+  pdfDocuments: BetaPdfDocument[]; pdfNotes: BetaPdfNote[];
   resources: BetaResource[]; habits: BetaHabit[]; exercises: BetaExercise[]; sleep: BetaSleep[];
   finance: BetaFinanceEntry[]; goals: BetaGoal[]; pomodoroRuntime?: BetaPomodoroRuntime;
 }

@@ -8,9 +8,9 @@ import { useBetaData } from "@/providers";
 import { cn } from "@/lib/cn";
 import { EmptyState, Field, fieldClass, localDate, nowEntity, uid } from "./shared";
 
-export function QuestionEngine({ locale, subjectId, wrongOnly = false }: { locale: Locale; subjectId?: string; wrongOnly?: boolean }) {
+export function QuestionEngine({ locale, subjectId, wrongOnly = false, initialChapterId }: { locale: Locale; subjectId?: string; wrongOnly?: boolean; initialChapterId?: string }) {
   const m = getBetaMessages(locale); const { state, mutate } = useBetaData();
-  const [chapterId, setChapterId] = useState("all"); const [index, setIndex] = useState(0);
+  const [chapterId, setChapterId] = useState(initialChapterId ?? "all"); const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string[]>([]); const [submitted, setSubmitted] = useState(false);
   const wrongIds = useMemo(() => new Set(state.wrongQuestions.filter((w) => !w.mastered).map((w) => w.questionId)), [state.wrongQuestions]);
   const questions = useMemo(() => state.questions.filter((q) => (!subjectId || q.subjectId === subjectId) && (chapterId === "all" || q.chapterId === chapterId) && (!wrongOnly || wrongIds.has(q.id))), [state.questions, subjectId, chapterId, wrongOnly, wrongIds]);

@@ -20,7 +20,7 @@ export const en: Dictionary = {
     plan: "Study Plan",
     psychology: "312 Psychology",
     politics: "Politics",
-    vocabulary: "Vocabulary",
+    vocabulary: "English",
     recitation: "Recitation",
     reading: "Reading",
     books: "Books",
