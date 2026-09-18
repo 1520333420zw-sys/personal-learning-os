@@ -5,9 +5,9 @@ import ts from "typescript";
 function load(file) {
   const source = fs.readFileSync(file, "utf8");
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  const module = { exports: {} };
-  new Function("module", "exports", "require", code)(module, module.exports, () => { throw new Error("Unexpected runtime import"); });
-  return module.exports;
+  const compiledModule = { exports: {} };
+  new Function("module", "exports", "require", code)(compiledModule, compiledModule.exports, () => { throw new Error("Unexpected runtime import"); });
+  return compiledModule.exports;
 }
 
 const { parseLearningAction } = load("src/domain/ai/actions.ts");
