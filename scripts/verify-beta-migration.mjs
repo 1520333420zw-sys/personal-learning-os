@@ -27,7 +27,8 @@ for (const key of ["units", "englishContent", "subjectiveQuestions", "currentAff
 previous.tasks.push({ id: "kept-task", ownerId: "local-owner", createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z", title: "Keep my task", description: "", date: "2026-01-01", plannedMinutes: 25, actualMinutes: 0, priority: "medium", status: "todo", sourceType: "manual" });
 previous.knowledgePoints[0].personalNote = "Keep my note";
 const migrated = migrateBetaState(previous);
-assert.equal(migrated.version, 3);
+assert.equal(migrated.version, 4);
+assert.deepEqual(migrated.externalWriteReceipts, []);
 assert.equal(migrated.tasks.find((item) => item.id === "kept-task")?.title, "Keep my task");
 assert.equal(migrated.knowledgePoints[0].personalNote, "Keep my note");
 assert.equal(migrated.units.length, 81);
@@ -72,7 +73,7 @@ assert.equal(parsePlanChanges({ changes: [
   { kind: "move", taskId: "locked", date: "2026-09-19", reason: "Two" },
 ] }, adjustableContext), null);
 assert.throws(() => migrateBetaState({ version: 2, ownerId: "x" }));
-console.log("Beta v1 → v3 migration, content packs, system exam points and AI plan guardrails: passed");
+console.log("Beta v1 → v4 migration, content packs, system exam points and AI plan guardrails: passed");
 for (const subjectId of ["subject-psychology-312", "subject-politics"]) {
   console.log(`${subjectId}: ${restored.chapters.filter((chapter) => chapter.subjectId === subjectId).length} modules, ${restored.units.filter((unit) => unit.subjectId === subjectId).length} outline units, ${restored.knowledgePoints.filter((point) => point.subjectId === subjectId).length} learning points`);
 }

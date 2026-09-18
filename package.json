@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:migration": "node scripts/verify-beta-migration.mjs",
+    "test:external-writes": "node scripts/verify-external-writes.mjs",
     "preview:cloudflare": "opennextjs-cloudflare preview",
     "deploy:cloudflare": "opennextjs-cloudflare deploy"
   },

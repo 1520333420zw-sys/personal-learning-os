@@ -123,7 +123,7 @@ export interface BetaPomodoroRuntime {
   targetEndAt?: string; remainingSeconds: number; status: "running" | "paused";
 }
 export interface BetaState {
-  version: 3; ownerId: OwnerId; subjects: BetaSubject[]; chapters: BetaChapter[]; units: BetaUnit[];
+  version: 4; ownerId: OwnerId; subjects: BetaSubject[]; chapters: BetaChapter[]; units: BetaUnit[];
   knowledgePoints: BetaKnowledgePoint[]; tasks: BetaTask[]; studySessions: BetaStudySession[];
   pomodoroSessions: BetaPomodoroSession[]; studyProgress: BetaStudyProgress[];
   reviewItems: BetaReviewItem[]; questions: BetaQuestion[]; questionAttempts: BetaQuestionAttempt[];
@@ -135,4 +135,5 @@ export interface BetaState {
   finance: BetaFinanceEntry[]; goals: BetaGoal[]; pomodoroRuntime?: BetaPomodoroRuntime;
   planningProfile?: PlanningProfile;
   contentPacks?: Record<string, string>;
+  externalWriteReceipts: { id: string; type: string; entityIds: string[]; importedAt: string; revertedAt?: string }[];
 }

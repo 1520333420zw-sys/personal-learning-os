@@ -1,0 +1,138 @@
+openapi: 3.1.0
+info:
+  title: Personal Learning OS external writes
+  version: 1.0.0
+  description: >-
+    Store one validated learning action in the owner's durable inbox. The owner reviews
+    and imports it in Personal Learning OS. Never claim browser data was updated until imported.
+servers:
+  - url: https://personal-learning-os.1520333420zw.workers.dev
+security:
+  - writeToken: []
+paths:
+  /api/external-writes/catalog:
+    get:
+      operationId: listLearningCatalog
+      summary: Get valid subject, chapter and question IDs before writing.
+      responses:
+        '200':
+          description: Built-in catalog IDs and labels.
+  /api/external-writes:
+    post:
+      operationId: queueLearningWrite
+      summary: Queue one structured learning record for owner review and browser import.
+      description: >-
+        Create one action per request. Reuse the same Idempotency-Key when retrying the
+        same action. Use a new random UUID for a different action. Dates are YYYY-MM-DD
+        in the user's local timezone. Never invent a questionId, source, URL or duration.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 16
+            maxLength: 128
+          description: Stable random UUID for this exact action; reuse on retry.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/StudySession'
+                - $ref: '#/components/schemas/Task'
+                - $ref: '#/components/schemas/Recitation'
+                - $ref: '#/components/schemas/Reading'
+                - $ref: '#/components/schemas/WrongQuestion'
+      responses:
+        '201':
+          description: Queued in D1; not yet imported into the owner's browser.
+        '200':
+          description: Same idempotency key and identical action already queued.
+        '401':
+          description: Missing or invalid write token.
+        '409':
+          description: Idempotency key was reused with different data.
+        '422':
+          description: Invalid or unsupported action.
+        '503':
+          description: D1 or secrets are not configured.
+  /api/external-writes/{id}:
+    delete:
+      operationId: revokeLearningWrite
+      summary: Cancel a queued action, or request local rollback if already imported.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Returns cancelled or revoke_requested status. Imported browser data requires owner confirmation to undo.
+components:
+  securitySchemes:
+    writeToken:
+      type: http
+      scheme: bearer
+  schemas:
+    StudySession:
+      type: object
+      additionalProperties: false
+      required: [type, date, durationMinutes, sessionType]
+      properties:
+        type: { type: string, const: study_session }
+        date: { type: string, format: date }
+        durationMinutes: { type: integer, minimum: 0, maximum: 480 }
+        subjectId: { type: string }
+        chapterId: { type: string }
+        sessionType: { type: string, enum: [learning, review, practice, recitation, reading] }
+        itemCount: { type: integer, minimum: 1, maximum: 10000 }
+        incorrectCount: { type: integer, minimum: 1, maximum: 10000 }
+    Task:
+      type: object
+      additionalProperties: false
+      required: [type, title, date, plannedMinutes, priority]
+      properties:
+        type: { type: string, const: task }
+        title: { type: string, maxLength: 200 }
+        date: { type: string, format: date }
+        plannedMinutes: { type: integer, minimum: 5, maximum: 480 }
+        priority: { type: string, enum: [low, medium, high] }
+        subjectId: { type: string }
+        chapterId: { type: string }
+        description: { type: string, maxLength: 2000 }
+    Recitation:
+      type: object
+      additionalProperties: false
+      required: [type, title, content]
+      properties:
+        type: { type: string, const: recitation }
+        title: { type: string, maxLength: 200 }
+        content: { type: string, maxLength: 5000 }
+        subjectId: { type: string }
+        chapterId: { type: string }
+        category: { type: string, maxLength: 120 }
+        nextReviewAt: { type: string, format: date }
+    Reading:
+      type: object
+      additionalProperties: false
+      required: [type, title]
+      properties:
+        type: { type: string, const: reading }
+        title: { type: string, maxLength: 300 }
+        source: { type: string, maxLength: 200 }
+        url: { type: string, format: uri }
+        publishedDate: { type: string, format: date }
+        category: { type: string, maxLength: 120 }
+        notes: { type: string, maxLength: 5000 }
+        summary: { type: string, maxLength: 5000 }
+    WrongQuestion:
+      type: object
+      additionalProperties: false
+      required: [type, questionId]
+      properties:
+        type: { type: string, const: wrong_question }
+        questionId: { type: string }
