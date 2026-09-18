@@ -1,6 +1,7 @@
 export type LearningAction =
   | { type: "createTask"; title: string; date: string; subjectId?: string; chapterId?: string; minutes: number }
-  | { type: "createStudySession"; date: string; subjectId?: string; chapterId?: string; minutes: number }
+  | { type: "createStudySession"; date: string; subjectId?: string; chapterId?: string; minutes: number; sessionType?: "learning" | "review" | "practice" | "recitation" | "reading" }
+  | { type: "recordCountedStudy"; date: string; subjectId?: string; chapterId?: string; activity: "vocabulary_recitation" | "question_mistakes"; count: number }
   | { type: "createMemorizationItem"; title: string; content?: string; knowledgePointId?: string; subjectId?: string; chapterId?: string }
   | { type: "createNote"; title: string; content: string; subjectId?: string }
   | { type: "createExpense" | "createIncome"; date: string; amount: number; category: string; note: string }
@@ -25,7 +26,10 @@ export function parseLearningAction(value: unknown): LearningAction | null {
   const a = value as Record<string, unknown>;
   switch (a.type) {
     case "createTask": if (string(a.title, 200) && date(a.date) && number(a.minutes, 5, 480) && optionalString(a.subjectId) && optionalString(a.chapterId)) return a as LearningAction; break;
-    case "createStudySession": if (date(a.date) && number(a.minutes, 1, 480) && optionalString(a.subjectId) && optionalString(a.chapterId)) return a as LearningAction; break;
+    case "createStudySession": if (date(a.date) && number(a.minutes, 1, 480) && optionalString(a.subjectId) && optionalString(a.chapterId) &&
+      (a.sessionType === undefined || ["learning", "review", "practice", "recitation", "reading"].includes(a.sessionType as string))) return a as LearningAction; break;
+    case "recordCountedStudy": if (date(a.date) && optionalString(a.subjectId) && optionalString(a.chapterId) &&
+      (a.activity === "vocabulary_recitation" || a.activity === "question_mistakes") && Number.isInteger(a.count) && number(a.count, 1, 10000)) return a as LearningAction; break;
     case "createMemorizationItem": if (string(a.title, 200) && (string(a.content, 10000) || string(a.knowledgePointId, 120)) && optionalString(a.subjectId) && optionalString(a.chapterId)) return a as LearningAction; break;
     case "createNote": if (string(a.title, 200) && string(a.content, 20000) && optionalString(a.subjectId)) return a as LearningAction; break;
     case "createExpense": case "createIncome": if (date(a.date) && number(a.amount, 0.01, 100000000) && string(a.category, 80) && typeof a.note === "string" && a.note.length <= 500) return a as LearningAction; break;

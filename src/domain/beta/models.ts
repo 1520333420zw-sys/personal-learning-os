@@ -26,6 +26,7 @@ export interface BetaTask extends BetaEntity {
 export interface BetaStudySession extends BetaEntity {
   subjectId?: BetaId; chapterId?: BetaId; taskId?: BetaId; startedAt: string; endedAt: string; durationMinutes: number;
   sessionType: "learning" | "review" | "practice" | "recitation" | "reading"; completed: boolean;
+  itemCount?: number; incorrectCount?: number;
 }
 export interface BetaPomodoroSession extends BetaEntity {
   subjectId?: BetaId; taskId?: BetaId; startedAt: string; endedAt: string;
