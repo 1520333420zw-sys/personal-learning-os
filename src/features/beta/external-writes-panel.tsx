@@ -128,8 +128,8 @@ export function ExternalWritesPanel({ locale }: { locale: Locale }) {
       <p className="type-small mt-2 break-words whitespace-pre-wrap text-secondary">{JSON.stringify(item.command, null, 2)}</p>
       {item.status === "revoke_requested" ? <p className="type-small mt-2 text-secondary">{l.revoke}</p> : null}
       <div className="mt-3 flex flex-wrap gap-2">{item.status === "pending" ? <>
-        <Button size="sm" onClick={() => void importItem(item)} disabled={busy}>{state.externalWriteReceipts.some((entry) => entry.id === item.id) ? l.acknowledge : l.import}</Button>
-        <Button size="sm" variant="secondary" onClick={() => void rejectItem(item.id)} disabled={busy}>{l.reject}</Button>
+        <Button size="sm" onClick={() => void importItem(item)} disabled={busy}>{state.externalWriteReceipts.some((entry) => entry.id === item.id && entry.revertedAt) ? l.reject : state.externalWriteReceipts.some((entry) => entry.id === item.id) ? l.acknowledge : l.import}</Button>
+        {!state.externalWriteReceipts.some((entry) => entry.id === item.id && !entry.revertedAt) ? <Button size="sm" variant="secondary" onClick={() => void rejectItem(item.id)} disabled={busy}>{l.reject}</Button> : null}
       </> : state.externalWriteReceipts.some((entry) => entry.id === item.id) ?
         <Button size="sm" variant="secondary" onClick={() => void undoItem(item.id)} disabled={busy}>{l.undo}</Button> : null}</div>
     </div>) : <p className="type-small text-secondary">{l.noItems}</p>}</div>
