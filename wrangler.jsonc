@@ -9,6 +9,14 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  "d1_databases": [
+    {
+      "binding": "EXTERNAL_INBOX_DB",
+      "database_name": "personal-learning-os-inbox",
+      "database_id": "38934496-c414-4cb0-b0b4-c4ac6522a4ef",
+      "migrations_dir": "migrations"
+    }
+  ],
   "observability": {
     "enabled": true
   }
