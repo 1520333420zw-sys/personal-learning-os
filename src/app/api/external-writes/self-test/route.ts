@@ -39,6 +39,9 @@ export async function POST(request: Request) {
     checks.applied = (await changeExternalWriteStatus(env.EXTERNAL_INBOX_DB!, "local-owner", receiptId, "pending", "applied"))?.status === "applied";
     checks.revokeRequested = (await changeExternalWriteStatus(env.EXTERNAL_INBOX_DB!, "local-owner", receiptId, "applied", "revoke_requested"))?.status === "revoke_requested";
     checks.reverted = (await changeExternalWriteStatus(env.EXTERNAL_INBOX_DB!, "local-owner", receiptId, "revoke_requested", "reverted"))?.status === "reverted";
+    await env.EXTERNAL_INBOX_DB!.prepare("DELETE FROM external_writes WHERE owner_id = ? AND idempotency_key = ?").bind("local-owner", key).run();
+    const remaining = await env.EXTERNAL_INBOX_DB!.prepare("SELECT COUNT(*) AS count FROM external_writes WHERE owner_id = ? AND idempotency_key = ?").bind("local-owner", key).first<{ count: number }>();
+    checks.cleaned = remaining?.count === 0;
     return NextResponse.json({ configured: true, passed: Object.values(checks).every(Boolean), checks });
   } catch (error) {
     console.error("external_write_e2e_failed", error);
