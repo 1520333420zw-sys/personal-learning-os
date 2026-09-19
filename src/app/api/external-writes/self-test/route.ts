@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { configured, externalWriteEnvironment } from "@/data/server/external-write-store";
+import { GET as listWrites, POST as createWrite } from "../route";
+import { DELETE as revokeWrite, PATCH as updateWrite } from "../[id]/route";
+import { GET as getCatalog } from "../catalog/route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,26 +20,27 @@ export async function POST(request: Request) {
   let receiptId = "";
   const checks: Record<string, boolean> = {};
   try {
-    checks.rejectsInvalidAuth = (await fetch(`${origin}/api/external-writes/catalog`, { headers: { Authorization: "Bearer invalid-e2e-token" } })).status === 401;
-    checks.catalog = (await fetch(`${origin}/api/external-writes/catalog`, { headers: { Authorization: `Bearer ${env.EXTERNAL_WRITE_TOKEN}` } })).status === 200;
+    checks.rejectsInvalidAuth = (await getCatalog(new Request(`${origin}/api/external-writes/catalog`, { headers: { Authorization: "Bearer invalid-e2e-token" } }))).status === 401;
+    checks.catalog = (await getCatalog(new Request(`${origin}/api/external-writes/catalog`, { headers: { Authorization: `Bearer ${env.EXTERNAL_WRITE_TOKEN}` } }))).status === 200;
     const command = { type: "task", title: "External write end-to-end test", date: "2099-12-31", plannedMinutes: 5, priority: "low" };
-    const created = await fetch(`${origin}/api/external-writes`, { method: "POST", headers: writeHeaders, body: JSON.stringify(command) });
+    const created = await createWrite(new Request(`${origin}/api/external-writes`, { method: "POST", headers: writeHeaders, body: JSON.stringify(command) }));
     const createdBody = await created.json() as { id?: string };
     receiptId = createdBody.id ?? "";
     checks.created = created.status === 201 && Boolean(receiptId);
-    const duplicate = await fetch(`${origin}/api/external-writes`, { method: "POST", headers: writeHeaders, body: JSON.stringify(command) });
+    const duplicate = await createWrite(new Request(`${origin}/api/external-writes`, { method: "POST", headers: writeHeaders, body: JSON.stringify(command) }));
     const duplicateBody = await duplicate.json() as { id?: string; duplicate?: boolean };
     checks.idempotent = duplicate.status === 200 && duplicateBody.duplicate === true && duplicateBody.id === receiptId;
-    const conflict = await fetch(`${origin}/api/external-writes`, { method: "POST", headers: writeHeaders, body: JSON.stringify({ ...command, plannedMinutes: 10 }) });
+    const conflict = await createWrite(new Request(`${origin}/api/external-writes`, { method: "POST", headers: writeHeaders, body: JSON.stringify({ ...command, plannedMinutes: 10 }) }));
     checks.conflict = conflict.status === 409;
-    const inbox = await fetch(`${origin}/api/external-writes?after=0`, { headers: { Authorization: `Bearer ${env.EXTERNAL_SYNC_TOKEN}` } });
+    const inbox = await listWrites(new Request(`${origin}/api/external-writes?after=0`, { headers: { Authorization: `Bearer ${env.EXTERNAL_SYNC_TOKEN}` } }));
     const inboxBody = await inbox.json() as { items?: { id: string; status: string }[] };
     checks.inbox = inbox.status === 200 && Boolean(inboxBody.items?.some((item) => item.id === receiptId && item.status === "pending"));
-    const applied = await fetch(`${origin}/api/external-writes/${receiptId}`, { method: "PATCH", headers: syncHeaders, body: JSON.stringify({ action: "applied" }) });
+    const context = { params: Promise.resolve({ id: receiptId }) };
+    const applied = await updateWrite(new Request(`${origin}/api/external-writes/${receiptId}`, { method: "PATCH", headers: syncHeaders, body: JSON.stringify({ action: "applied" }) }), context);
     checks.applied = applied.status === 200 && (await applied.json() as { status?: string }).status === "applied";
-    const revoke = await fetch(`${origin}/api/external-writes/${receiptId}`, { method: "DELETE", headers: { Authorization: `Bearer ${env.EXTERNAL_WRITE_TOKEN}` } });
+    const revoke = await revokeWrite(new Request(`${origin}/api/external-writes/${receiptId}`, { method: "DELETE", headers: { Authorization: `Bearer ${env.EXTERNAL_WRITE_TOKEN}` } }), context);
     checks.revokeRequested = revoke.status === 200 && (await revoke.json() as { status?: string }).status === "revoke_requested";
-    const reverted = await fetch(`${origin}/api/external-writes/${receiptId}`, { method: "PATCH", headers: syncHeaders, body: JSON.stringify({ action: "reverted" }) });
+    const reverted = await updateWrite(new Request(`${origin}/api/external-writes/${receiptId}`, { method: "PATCH", headers: syncHeaders, body: JSON.stringify({ action: "reverted" }) }), context);
     checks.reverted = reverted.status === 200 && (await reverted.json() as { status?: string }).status === "reverted";
     return NextResponse.json({ configured: true, passed: Object.values(checks).every(Boolean), checks });
   } catch (error) {
