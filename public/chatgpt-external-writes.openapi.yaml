@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Personal Learning OS external writes
-  version: 1.0.0
+  version: 1.0.1
   description: >-
     Store one validated learning action in the owner's durable inbox. The owner reviews
     and imports it in Personal Learning OS. Never claim browser data was updated until imported.
@@ -39,12 +39,101 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: '#/components/schemas/StudySession'
-                - $ref: '#/components/schemas/Task'
-                - $ref: '#/components/schemas/Recitation'
-                - $ref: '#/components/schemas/Reading'
-                - $ref: '#/components/schemas/WrongQuestion'
+              type: object
+              additionalProperties: false
+              required: [type]
+              description: >-
+                One learning write. Required fields depend on type: study_session requires
+                date, durationMinutes and sessionType; task requires title, date,
+                plannedMinutes and priority; recitation requires title and content; reading
+                requires title; wrong_question requires questionId. The server validates the
+                selected operation and rejects missing, extra or incompatible fields.
+              properties:
+                type:
+                  type: string
+                  enum: [study_session, task, recitation, reading, wrong_question]
+                  description: Selects the learning write operation and its required fields.
+                date:
+                  type: string
+                  format: date
+                  description: Required for study_session and task. User-local date in YYYY-MM-DD format.
+                durationMinutes:
+                  type: integer
+                  minimum: 0
+                  maximum: 480
+                  description: Required for study_session. Use 0 only when itemCount or incorrectCount records meaningful work.
+                subjectId:
+                  type: string
+                  description: Optional catalog subject ID. Call listLearningCatalog rather than inventing an ID.
+                chapterId:
+                  type: string
+                  description: Optional catalog chapter ID. Call listLearningCatalog rather than inventing an ID.
+                sessionType:
+                  type: string
+                  enum: [learning, review, practice, recitation, reading]
+                  description: Required for study_session.
+                itemCount:
+                  type: integer
+                  minimum: 1
+                  maximum: 10000
+                  description: Optional number of studied or recited items for study_session.
+                incorrectCount:
+                  type: integer
+                  minimum: 1
+                  maximum: 10000
+                  description: Optional wrong-answer count for study_session.
+                title:
+                  type: string
+                  maxLength: 300
+                  description: Required for task, recitation and reading. Task and recitation titles are limited to 200 characters.
+                plannedMinutes:
+                  type: integer
+                  minimum: 5
+                  maximum: 480
+                  description: Required for task.
+                priority:
+                  type: string
+                  enum: [low, medium, high]
+                  description: Required for task.
+                description:
+                  type: string
+                  maxLength: 2000
+                  description: Optional task description.
+                content:
+                  type: string
+                  maxLength: 5000
+                  description: Required for recitation.
+                category:
+                  type: string
+                  maxLength: 120
+                  description: Optional category for recitation or reading.
+                nextReviewAt:
+                  type: string
+                  format: date
+                  description: Optional next review date for recitation.
+                source:
+                  type: string
+                  maxLength: 200
+                  description: Optional reading source. Never invent a source.
+                url:
+                  type: string
+                  format: uri
+                  description: Optional original reading URL. Never invent a URL.
+                publishedDate:
+                  type: string
+                  format: date
+                  description: Optional reading publication date.
+                notes:
+                  type: string
+                  maxLength: 5000
+                  description: Optional reading notes written by the user.
+                summary:
+                  type: string
+                  maxLength: 5000
+                  description: Optional reading summary written by the user.
+                questionId:
+                  type: string
+                  description: Required for wrong_question. Use an ID returned by listLearningCatalog.
       responses:
         '201':
           description: Queued in D1; not yet imported into the owner's browser.
@@ -77,62 +166,3 @@ components:
     writeToken:
       type: http
       scheme: bearer
-  schemas:
-    StudySession:
-      type: object
-      additionalProperties: false
-      required: [type, date, durationMinutes, sessionType]
-      properties:
-        type: { type: string, const: study_session }
-        date: { type: string, format: date }
-        durationMinutes: { type: integer, minimum: 0, maximum: 480 }
-        subjectId: { type: string }
-        chapterId: { type: string }
-        sessionType: { type: string, enum: [learning, review, practice, recitation, reading] }
-        itemCount: { type: integer, minimum: 1, maximum: 10000 }
-        incorrectCount: { type: integer, minimum: 1, maximum: 10000 }
-    Task:
-      type: object
-      additionalProperties: false
-      required: [type, title, date, plannedMinutes, priority]
-      properties:
-        type: { type: string, const: task }
-        title: { type: string, maxLength: 200 }
-        date: { type: string, format: date }
-        plannedMinutes: { type: integer, minimum: 5, maximum: 480 }
-        priority: { type: string, enum: [low, medium, high] }
-        subjectId: { type: string }
-        chapterId: { type: string }
-        description: { type: string, maxLength: 2000 }
-    Recitation:
-      type: object
-      additionalProperties: false
-      required: [type, title, content]
-      properties:
-        type: { type: string, const: recitation }
-        title: { type: string, maxLength: 200 }
-        content: { type: string, maxLength: 5000 }
-        subjectId: { type: string }
-        chapterId: { type: string }
-        category: { type: string, maxLength: 120 }
-        nextReviewAt: { type: string, format: date }
-    Reading:
-      type: object
-      additionalProperties: false
-      required: [type, title]
-      properties:
-        type: { type: string, const: reading }
-        title: { type: string, maxLength: 300 }
-        source: { type: string, maxLength: 200 }
-        url: { type: string, format: uri }
-        publishedDate: { type: string, format: date }
-        category: { type: string, maxLength: 120 }
-        notes: { type: string, maxLength: 5000 }
-        summary: { type: string, maxLength: 5000 }
-    WrongQuestion:
-      type: object
-      additionalProperties: false
-      required: [type, questionId]
-      properties:
-        type: { type: string, const: wrong_question }
-        questionId: { type: string }
