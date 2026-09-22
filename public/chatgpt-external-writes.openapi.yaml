@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Personal Learning OS external writes
-  version: 1.0.1
+  version: 1.0.2
   description: >-
     Store one validated learning action in the owner's durable inbox. The owner reviews
     and imports it in Personal Learning OS. Never claim browser data was updated until imported.
@@ -162,6 +162,7 @@ paths:
         '200':
           description: Returns cancelled or revoke_requested status. Imported browser data requires owner confirmation to undo.
 components:
+  schemas: {}
   securitySchemes:
     writeToken:
       type: http
