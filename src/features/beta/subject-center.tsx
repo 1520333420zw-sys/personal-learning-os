@@ -11,6 +11,7 @@ import { areaClass, BetaPage, EmptyState, Field, localDate, nowEntity, Tabs, uid
 import { QuestionEngine } from "./question-engine";
 import { ChapterWorkspace } from "./chapter-workspace";
 import { CurrentAffairs } from "./current-affairs";
+import { SubjectStudySummary } from "./study-history";
 
 type CenterTab = "learn" | "map" | "practice" | "wrong" | "review";
 
@@ -31,6 +32,7 @@ export function SubjectCenter({ locale, slug }: { locale: Locale; slug: "psychol
   function createLinkedNote() { if (!selected) return; mutate((draft) => { if (!draft.notes.some((note) => note.linkedType === "knowledge" && note.linkedId === selected.id)) draft.notes.push({ ...nowEntity(uid("note"), draft.ownerId), title: locale === "en" ? selected.titleEn : selected.title, content: selected.personalNote, tags: [slug], subjectId: subject.id, linkedType: "knowledge", linkedId: selected.id, favorite: false }); }); }
 
   return <BetaPage title={title} description={`${m.subjectCenter.learn} · ${chapters.length} ${m.subjectCenter.areas} · ${state.units.filter((unit) => unit.subjectId === subject.id).length} ${m.chapter} · ${masteredPoints} / ${points.length} ${m.subjectCenter.savedPoints} ${m.subjectCenter.mastered}`}>
+    <SubjectStudySummary locale={locale} subjectId={subject.id}/>
     <Tabs label={m.subjectCenter.learn} items={tabs} value={tab} onChange={(id) => setTab(id as CenterTab)} />
     {tab === "learn" ? <div className="grid gap-6 desktop:grid-cols-[18rem_minmax(0,1fr)]">
       <Card padding="sm" className="self-start"><h2 className="type-h3 text-primary">{m.subjectCenter.areas}</h2><div className="mt-4 grid gap-2">{chapters.map((c) => <button key={c.id} type="button" onClick={() => { setChapterId(c.id); const first = points.find((p) => p.chapterId === c.id); if (first) setPointId(first.id); }} className={cn("min-h-11 rounded-md px-3 text-left type-small", chapterId === c.id ? "bg-accent-soft text-primary" : "text-secondary hover:bg-surface-muted")}>{locale === "en" ? c.titleEn : c.title}<span className="ml-2 text-muted">({state.units.filter((unit) => unit.chapterId === c.id).length} {m.chapter})</span></button>)}</div></Card>

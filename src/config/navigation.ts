@@ -3,6 +3,7 @@ export type NavigationGroup = "today" | "learn" | "knowledge" | "life";
 export type NavigationKey =
   | "home"
   | "plan"
+  | "history"
   | "inbox"
   | "psychology"
   | "politics"
@@ -21,6 +22,7 @@ export type NavigationKey =
 export type NavigationIcon =
   | "home"
   | "calendar"
+  | "history"
   | "inbox"
   | "brain"
   | "politics"
@@ -48,6 +50,7 @@ export const navigationItems: readonly NavigationItem[] = [
   { id: "home", labelKey: "home", href: "", group: "today", icon: "home", mobilePrimary: true },
   { id: "plan", labelKey: "plan", href: "/plan", group: "today", icon: "calendar", mobilePrimary: true },
   { id: "focus", labelKey: "focus", href: "/focus", group: "today", icon: "timer", mobilePrimary: true },
+  { id: "history", labelKey: "history", href: "/history", group: "today", icon: "history", mobilePrimary: false },
   { id: "inbox", labelKey: "inbox", href: "/inbox", group: "today", icon: "inbox", mobilePrimary: false },
   { id: "psychology", labelKey: "psychology", href: "/psychology", group: "learn", icon: "brain", mobilePrimary: false },
   { id: "politics", labelKey: "politics", href: "/politics", group: "learn", icon: "politics", mobilePrimary: false },

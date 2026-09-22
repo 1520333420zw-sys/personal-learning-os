@@ -18,6 +18,7 @@ export const en: Dictionary = {
   navigation: {
     home: "Home",
     plan: "Study Plan",
+    history: "Study History",
     inbox: "External Inbox",
     psychology: "312 Psychology",
     politics: "Politics",
@@ -36,6 +37,7 @@ export const en: Dictionary = {
   pages: {
     home: { title: "Home", description: "Your daily starting point for learning and growth." },
     plan: { title: "Study Plan", description: "Shape daily, weekly, and long-term learning goals." },
+    history: { title: "Study History", description: "Review every learning, review, practice, recitation, and reading session." },
     inbox: { title: "ChatGPT External Inbox", description: "Review ChatGPT write requests and import them into this browser." },
     psychology: { title: "312 Psychology", description: "Build a structured path through subjects, chapters, and concepts." },
     politics: { title: "Politics", description: "Study political theory and current-affairs topics through structured review and practice." },
