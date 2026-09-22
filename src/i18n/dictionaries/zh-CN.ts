@@ -18,6 +18,7 @@ export const zhCN: Dictionary = {
   navigation: {
     home: "首页",
     plan: "学习计划",
+    inbox: "外部写入收件箱",
     psychology: "312 心理学",
     politics: "政治",
     universal: "全科学习",
@@ -35,6 +36,7 @@ export const zhCN: Dictionary = {
   pages: {
     home: { title: "首页", description: "你的每日学习与成长入口。" },
     plan: { title: "学习计划", description: "安排每日、每周与长期学习目标。" },
+    inbox: { title: "ChatGPT 外部写入收件箱", description: "检查 ChatGPT 写入请求，并确认导入当前浏览器。" },
     psychology: { title: "312 心理学", description: "围绕科目、章节和知识点建立系统学习路径。" },
     politics: { title: "政治", description: "系统学习政治知识、时政考点，并通过题库、复习与模拟训练巩固掌握。" },
     universal: { title: "全科学习", description: "跨学科的基础学习路径、知识点与练习。" },

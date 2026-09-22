@@ -7,7 +7,7 @@ import { saveBetaState } from "@/data/browser/beta-store";
 import type { ExternalWriteReceipt } from "@/domain/external-writes/command";
 import type { Locale } from "@/i18n/config";
 import { useBetaData } from "@/providers";
-import { fieldClass } from "./shared";
+import { BetaPage, fieldClass } from "./shared";
 
 const copy = {
   "zh-CN": {
@@ -36,7 +36,12 @@ const copy = {
   },
 } as const;
 
-export function ExternalWritesPanel({ locale }: { locale: Locale }) {
+export function ExternalWritesPage({ locale }: { locale: Locale }) {
+  const l = copy[locale];
+  return <BetaPage title={l.title} description={l.description}><ExternalWritesPanel locale={locale} showHeading={false} /></BetaPage>;
+}
+
+export function ExternalWritesPanel({ locale, showHeading = true }: { locale: Locale; showHeading?: boolean }) {
   const l = copy[locale];
   const { state, importJson } = useBetaData();
   const [secret, setSecret] = useState("");
@@ -118,7 +123,7 @@ export function ExternalWritesPanel({ locale }: { locale: Locale }) {
     finally { setBusy(false); }
   }
 
-  return <section><SectionHeader title={l.title} description={l.description}/><Card className="mt-5" padding="sm">
+  return <section aria-label={l.title}>{showHeading ? <SectionHeader title={l.title} description={l.description}/> : null}<Card className={showHeading ? "mt-5" : undefined} padding="sm">
     <div className="flex flex-col gap-3 tablet:flex-row tablet:items-end"><label className="type-label grid min-w-0 flex-1 gap-2 text-primary">{l.token}
       <input type="password" autoComplete="off" className={fieldClass} value={secret} onChange={(event) => setSecret(event.target.value)} />
     </label><Button onClick={() => void refresh()} disabled={busy || !secret}>{items.length ? l.refresh : l.connect}</Button></div>

@@ -24,6 +24,8 @@ export function NavigationIcon({ name, className }: NavigationIconProps) {
       return <svg {...commonProps}><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z" /></svg>;
     case "calendar":
       return <svg {...commonProps}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4M16 3v4M3 10h18" /></svg>;
+    case "inbox":
+      return <svg {...commonProps}><path d="M4 5h16l1 9v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z" /><path d="M3 14h5l2 3h4l2-3h5" /></svg>;
     case "brain":
       return <svg {...commonProps}><path d="M9.5 4.5A3 3 0 0 0 4 6a3 3 0 0 0-1 5.8A3.5 3.5 0 0 0 7 17h2.5ZM14.5 4.5A3 3 0 0 1 20 6a3 3 0 0 1 1 5.8 3.5 3.5 0 0 1-4 5.2h-2.5ZM9.5 4.5V20M14.5 4.5V20" /></svg>;
     case "politics":
