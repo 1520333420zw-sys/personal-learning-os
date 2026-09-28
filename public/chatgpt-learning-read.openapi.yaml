@@ -1,0 +1,108 @@
+openapi: 3.1.0
+info:
+  title: Personal Learning OS learning data reader
+  version: 1.0.0
+  description: >-
+    Read the owner's server-side learning mirror. This API is read-only. Results may lag
+    until the owner's browser has opened Personal Learning OS and completed a secure sync.
+servers:
+  - url: https://personal-learning-os.1520333420zw.workers.dev
+security:
+  - readToken: []
+paths:
+  /api/gpt-learning-data/summary:
+    get:
+      operationId: getLearningSummary
+      summary: Get study totals and subject breakdown for a local-date range.
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: First user-local date, inclusive.
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          description: Last user-local date, inclusive. The range cannot exceed 366 days.
+          schema:
+            type: string
+            format: date
+        - name: subjectId
+          in: query
+          required: false
+          description: Optional exact subject ID when the user asks about one subject.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Total minutes, session count and per-subject aggregates.
+        '400':
+          description: Invalid date range or subject ID.
+        '401':
+          description: Missing or invalid read token.
+        '503':
+          description: Read mirror or read secret is not configured.
+  /api/gpt-learning-data/recent:
+    get:
+      operationId: listRecentStudySessions
+      summary: List the owner's most recent completed study sessions.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: subjectId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Recent sessions with dates, subjects, chapters, types, minutes and optional item counts.
+        '401':
+          description: Missing or invalid read token.
+        '503':
+          description: Read mirror or read secret is not configured.
+  /api/gpt-learning-data/tasks:
+    get:
+      operationId: listLearningTasks
+      summary: List learning tasks in a local-date range for grounded planning assistance.
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [todo, in_progress, completed]
+      responses:
+        '200':
+          description: Tasks with schedule, subject, chapter, planned and actual minutes, priority and status.
+        '400':
+          description: Invalid date range or status.
+        '401':
+          description: Missing or invalid read token.
+        '503':
+          description: Read mirror or read secret is not configured.
+components:
+  securitySchemes:
+    readToken:
+      type: http
+      scheme: bearer

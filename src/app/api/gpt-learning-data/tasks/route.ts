@@ -1,0 +1,16 @@
+import { listMirroredTasks } from "@/data/server/learning-mirror-store";
+import { authorizeLearningRead, json, ownerId, validDate, validRange } from "../shared";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function GET(request: Request) {
+  const auth = await authorizeLearningRead(request);
+  if (auth.response) return auth.response;
+  const url = new URL(request.url);
+  const from = url.searchParams.get("from"); const to = url.searchParams.get("to");
+  const status = url.searchParams.get("status") || undefined;
+  if (!validDate(from) || !validDate(to) || !validRange(from, to) || (status && !["todo", "in_progress", "completed"].includes(status))) return json({ error: "invalid_query" }, 400);
+  try { return json({ from, to, tasks: await listMirroredTasks(auth.env.EXTERNAL_INBOX_DB!, ownerId, from, to, status) }); }
+  catch (error) { console.error("learning_tasks_failed", error); return json({ error: "storage_error" }, 503); }
+}
