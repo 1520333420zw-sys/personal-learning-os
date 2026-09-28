@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authorized, changeExternalWriteStatus, configured, externalWriteEnvironment } from "@/data/server/external-write-store";
+import { authorized, changeExternalWriteStatus, configured, externalWriteEnvironment, syncAuthorized } from "@/data/server/external-write-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,7 +10,7 @@ type Context = { params: Promise<{ id: string }> };
 export async function PATCH(request: Request, context: Context) {
   const env = await externalWriteEnvironment();
   if (!configured(env)) return json({ error: "external_write_not_configured" }, 503);
-  if (!await authorized(request.headers.get("authorization"), env.EXTERNAL_SYNC_TOKEN)) return json({ error: "unauthorized" }, 401);
+  if (!await syncAuthorized(request, env.EXTERNAL_SYNC_TOKEN)) return json({ error: "unauthorized" }, 401);
   const { id } = await context.params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) return json({ error: "invalid_id" }, 400);
   let action: unknown;

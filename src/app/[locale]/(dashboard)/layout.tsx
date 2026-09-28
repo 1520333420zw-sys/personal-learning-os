@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n";
 import { isLocale } from "@/i18n/config";
 import { BetaDataProvider } from "@/providers";
 import { AiAssistant } from "@/features/beta/ai-assistant";
+import { ExternalWriteAutoSync } from "@/features/beta/external-write-auto-sync";
 
 export default async function DashboardLayout({
   children,
@@ -22,6 +23,7 @@ export default async function DashboardLayout({
 
   return (
     <BetaDataProvider>
+      <ExternalWriteAutoSync />
       <AppShell locale={locale} dictionary={getDictionary(locale)}>
         {children}
         <AiAssistant locale={locale} />

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { parseExternalWrite } from "@/domain/external-writes/command";
-import { authorized, configured, createExternalWrite, externalWriteEnvironment, listExternalWrites } from "@/data/server/external-write-store";
+import { authorized, configured, createExternalWrite, externalWriteEnvironment, listExternalWrites, syncAuthorized } from "@/data/server/external-write-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const env = await externalWriteEnvironment();
   if (!configured(env)) return json({ error: "external_write_not_configured" }, 503);
-  if (!await authorized(request.headers.get("authorization"), env.EXTERNAL_SYNC_TOKEN)) return json({ error: "unauthorized" }, 401);
+  if (!await syncAuthorized(request, env.EXTERNAL_SYNC_TOKEN)) return json({ error: "unauthorized" }, 401);
   const raw = new URL(request.url).searchParams.get("after") ?? "0";
   const after = Number(raw);
   if (!Number.isSafeInteger(after) || after < 0) return json({ error: "invalid_cursor" }, 400);

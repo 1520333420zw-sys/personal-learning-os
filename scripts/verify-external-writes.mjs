@@ -15,6 +15,7 @@ function load(file, imports = {}) {
 
 const parser = load("src/domain/external-writes/command.ts");
 const merge = load("src/data/browser/external-write-merge.ts");
+const sync = load("src/data/browser/external-write-sync.ts", { "./external-write-merge": merge });
 const repository = load("src/data/server/external-write-store.ts", { "@opennextjs/cloudflare": { getCloudflareContext: async () => ({ env: {} }) } });
 const outline = load("src/data/browser/learning-outline.ts");
 const core = load("src/data/content-packs/core.ts");
@@ -95,4 +96,24 @@ assert.equal((await repository.changeExternalWriteStatus(db, "local-owner", firs
 assert.equal((await repository.listExternalWrites(db, "local-owner", 0)).items.length, 0);
 assert.equal(await repository.authorized("Bearer same-secret-123456789012345678901234", "same-secret-123456789012345678901234"), true);
 assert.equal(await repository.authorized("Bearer different-secret-1234567890123456789", "same-secret-123456789012345678901234"), false);
-console.log("External write validation, v3 migration, five imports, local undo, server idempotency and auth: passed");
+const syncSecret = "browser-sync-secret-12345678901234567890";
+const session = await repository.createSyncSession(syncSecret);
+assert.equal(await repository.validSyncSession(session, syncSecret), true);
+assert.equal(await repository.validSyncSession(`${session}x`, syncSecret), false);
+assert.equal(await repository.syncAuthorized(new Request("https://example.com/api", { headers: { cookie: `${repository.EXTERNAL_SYNC_COOKIE}=${session}` } }), syncSecret), true);
+assert.match(repository.syncSessionCookie(session), /HttpOnly; Secure; SameSite=Strict/);
+
+const autoState = store.createInitialBetaState();
+const autoReceipt = { id: "10000000-0000-4000-8000-000000000000", command: cases[0], status: "pending", createdAt: "2026-09-18T00:00:00Z" };
+const autoResult = sync.mergeExternalWrites(autoState, [autoReceipt]);
+assert.equal(autoResult.changed, true);
+assert.equal(autoResult.state.studySessions.length, 1);
+assert.deepEqual(autoResult.acknowledgements, [{ id: autoReceipt.id, action: "applied" }]);
+const duplicateResult = sync.mergeExternalWrites(autoResult.state, [autoReceipt]);
+assert.equal(duplicateResult.changed, false);
+assert.equal(duplicateResult.state.studySessions.length, 1);
+const revokeResult = sync.mergeExternalWrites(autoResult.state, [{ ...autoReceipt, status: "revoke_requested" }]);
+assert.equal(revokeResult.changed, true);
+assert.equal(revokeResult.state.studySessions.length, 0);
+assert.deepEqual(revokeResult.acknowledgements, [{ id: autoReceipt.id, action: "reverted" }]);
+console.log("External write validation, v3 migration, five imports, auto sync, local undo, server idempotency, session auth and revoke: passed");

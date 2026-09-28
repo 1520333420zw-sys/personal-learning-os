@@ -18,6 +18,9 @@ interface Row {
   status: ExternalWriteReceipt["status"]; command_json: string; created_at: string;
 }
 
+export const EXTERNAL_SYNC_COOKIE = "plos_external_sync";
+const syncSessionLifetimeSeconds = 60 * 60 * 24 * 30;
+
 export async function externalWriteEnvironment(): Promise<Environment> {
   try { return (await getCloudflareContext({ async: true })).env as Environment; }
   catch { return {} as Environment; }
@@ -38,6 +41,48 @@ export async function authorized(header: string | null, expected: string | undef
   let mismatch = 0;
   for (let index = 0; index < left.length; index++) mismatch |= left[index] ^ right[index];
   return mismatch === 0;
+}
+
+function base64Url(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+async function signSyncSession(payload: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
+  return base64Url(new Uint8Array(signature));
+}
+
+/** Creates a short, scoped browser session without storing the sync secret in client JavaScript. */
+export async function createSyncSession(secret: string): Promise<string> {
+  const payload = `v1.${Math.floor(Date.now() / 1000) + syncSessionLifetimeSeconds}`;
+  return `${payload}.${await signSyncSession(payload, secret)}`;
+}
+
+export async function validSyncSession(value: string | undefined, secret: string | undefined): Promise<boolean> {
+  if (!value || !secret || secret.length < 32) return false;
+  const parts = value.split(".");
+  if (parts.length !== 3 || parts[0] !== "v1") return false;
+  const expiresAt = Number(parts[1]);
+  if (!Number.isSafeInteger(expiresAt) || expiresAt <= Math.floor(Date.now() / 1000)) return false;
+  const expected = await signSyncSession(`${parts[0]}.${parts[1]}`, secret);
+  if (parts[2].length !== expected.length) return false;
+  let mismatch = 0;
+  for (let index = 0; index < expected.length; index++) mismatch |= parts[2].charCodeAt(index) ^ expected.charCodeAt(index);
+  return mismatch === 0;
+}
+
+function cookieValue(header: string | null, name: string): string | undefined {
+  return header?.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
+}
+
+export async function syncAuthorized(request: Request, expected: string | undefined): Promise<boolean> {
+  if (await authorized(request.headers.get("authorization"), expected)) return true;
+  return validSyncSession(cookieValue(request.headers.get("cookie"), EXTERNAL_SYNC_COOKIE), expected);
+}
+
+export function syncSessionCookie(value: string, maxAge = syncSessionLifetimeSeconds): string {
+  return `${EXTERNAL_SYNC_COOKIE}=${value}; Path=/api/external-writes; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
 }
 
 function receipt(row: Row): ExternalWriteReceipt {
