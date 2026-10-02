@@ -6,6 +6,15 @@ const ledgerKey = "personal-learning-os:learning-mirror:v1";
 const batchSize = 200;
 interface MirrorLedger { sessions: Record<string, string>; tasks: Record<string, string>; }
 
+export const LEARNING_MIRROR_STATUS_EVENT = "plos:learning-mirror-status";
+export type LearningMirrorSyncStatus = "syncing" | "synced" | "unchanged" | "unauthorized" | "failed";
+export interface LearningMirrorSyncResult {
+  status: LearningMirrorSyncStatus;
+  sessions: number;
+  tasks: number;
+  deletions: number;
+}
+
 function readLedger(): MirrorLedger {
   try {
     const value = JSON.parse(window.localStorage.getItem(ledgerKey) ?? "null") as Partial<MirrorLedger> | null;
@@ -68,14 +77,15 @@ export function createLearningMirrorChanges(state: BetaState, prior = readLedger
   return { sessions, tasks, deletions, ledger: { sessions: sessionHashes, tasks: taskHashes } };
 }
 
-export async function syncLearningMirror(state: BetaState): Promise<"synced" | "unchanged" | "unauthorized" | "failed"> {
+export async function syncLearningMirror(state: BetaState): Promise<LearningMirrorSyncResult> {
   const changes = createLearningMirrorChanges(state);
+  const counts = { sessions: changes.sessions.length, tasks: changes.tasks.length, deletions: changes.deletions.length };
   const operations = [
     ...changes.sessions.map((value) => ({ kind: "session" as const, value })),
     ...changes.tasks.map((value) => ({ kind: "task" as const, value })),
     ...changes.deletions.map((value) => ({ kind: "deletion" as const, value })),
   ];
-  if (!operations.length) return "unchanged";
+  if (!operations.length) return { status: "unchanged", ...counts };
   for (let index = 0; index < operations.length; index += batchSize) {
     const batch = operations.slice(index, index + batchSize);
     const payload: LearningMirrorSync = {
@@ -87,12 +97,12 @@ export async function syncLearningMirror(state: BetaState): Promise<"synced" | "
     try {
       response = await fetch("/api/external-writes/learning-mirror", { method: "POST", credentials: "same-origin", cache: "no-store",
         headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-    } catch { return "failed"; }
-    if (response.status === 401) return "unauthorized";
-    if (!response.ok) return "failed";
+    } catch { return { status: "failed", ...counts }; }
+    if (response.status === 401) return { status: "unauthorized", ...counts };
+    if (!response.ok) return { status: "failed", ...counts };
   }
   writeLedger(changes.ledger);
-  return "synced";
+  return { status: "synced", ...counts };
 }
 
 export function clearLearningMirrorLedger() {

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Card, SectionHeader } from "@/components/ui";
 import { applyExternalWrite, revertExternalWrite } from "@/data/browser/external-write-merge";
 import { saveBetaState } from "@/data/browser/beta-store";
 import { listExternalWrites } from "@/data/browser/external-write-sync";
+import { LEARNING_MIRROR_STATUS_EVENT, syncLearningMirror, type LearningMirrorSyncResult } from "@/data/browser/learning-mirror-sync";
 import type { ExternalWriteReceipt } from "@/domain/external-writes/command";
 import type { Locale } from "@/i18n/config";
 import { useBetaData } from "@/providers";
@@ -17,6 +18,11 @@ const copy = {
     token: "浏览器同步密钥（与 ChatGPT 写入密钥不同）", connect: "启用自动同步", refresh: "刷新", disconnect: "停用自动同步",
     automatic: "密钥仅用于建立此浏览器的安全 HttpOnly 会话，不会保存到网页代码或本地数据。此后打开应用会自动检查并导入。",
     connected: "已启用自动同步。",
+    mirrorTitle: "学习数据只读镜像", mirrorDescription: "将当前浏览器已有的学习记录与任务安全同步到 D1 查询镜像，供 GPT 只读分析。浏览器 BetaState 仍是主数据源。",
+    mirrorNow: "立即同步学习数据", mirrorLocal: "当前浏览器：{sessions} 条已完成学习记录，{tasks} 个任务。",
+    mirrorSyncing: "正在同步学习数据…", mirrorSynced: "同步成功：更新 {sessions} 条学习记录、{tasks} 个任务、{deletions} 个删除标记。",
+    mirrorUnchanged: "同步成功：D1 镜像已经是最新状态。", mirrorUnauthorized: "尚未建立浏览器同步会话。请在上方输入浏览器同步密钥并启用自动同步。",
+    mirrorFailed: "学习数据镜像同步失败。请确认 D1 migration 已执行，然后重试。",
     noItems: "暂无待导入操作。", import: "导入", reject: "拒绝", undo: "撤销本地导入", acknowledge: "重试同步状态",
     revoke: "此操作已被外部撤销。若已导入，请在下方撤销本地记录。", history: "最近导入",
     auth: "同步密钥无效。", setup: "Cloudflare D1 或外部写入密钥尚未配置。", failed: "收件箱暂时无法访问。",
@@ -31,6 +37,11 @@ const copy = {
     token: "Browser sync secret (different from the ChatGPT write secret)", connect: "Enable automatic sync", refresh: "Refresh", disconnect: "Disable automatic sync",
     automatic: "The secret only establishes a secure HttpOnly session for this browser. It is not saved in page code or local data. The app will then check and import automatically when opened.",
     connected: "Automatic sync is enabled.",
+    mirrorTitle: "Read-only learning data mirror", mirrorDescription: "Securely mirror this browser's existing study records and tasks to D1 for read-only GPT analysis. Browser BetaState remains the source of truth.",
+    mirrorNow: "Sync learning data now", mirrorLocal: "This browser: {sessions} completed study sessions and {tasks} tasks.",
+    mirrorSyncing: "Syncing learning data…", mirrorSynced: "Sync complete: updated {sessions} sessions, {tasks} tasks and {deletions} deletion markers.",
+    mirrorUnchanged: "Sync complete: the D1 mirror is already up to date.", mirrorUnauthorized: "No browser sync session. Enter the browser sync secret above and enable automatic sync.",
+    mirrorFailed: "Learning data mirror sync failed. Confirm the D1 migration was applied, then retry.",
     noItems: "No pending writes.", import: "Import", reject: "Reject", undo: "Undo local import", acknowledge: "Retry status sync",
     revoke: "This write was revoked externally. If imported, undo its local record below.", history: "Recent imports",
     auth: "Invalid sync secret.", setup: "Cloudflare D1 or external write secrets are not configured.", failed: "Inbox is unavailable.",
@@ -55,6 +66,31 @@ export function ExternalWritesPanel({ locale, showHeading = true }: { locale: Lo
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [mirrorBusy, setMirrorBusy] = useState(false);
+  const [mirrorResult, setMirrorResult] = useState<LearningMirrorSyncResult | null>(null);
+
+  useEffect(() => {
+    const receive = (event: Event) => setMirrorResult((event as CustomEvent<LearningMirrorSyncResult>).detail);
+    window.addEventListener(LEARNING_MIRROR_STATUS_EVENT, receive);
+    return () => window.removeEventListener(LEARNING_MIRROR_STATUS_EVENT, receive);
+  }, []);
+
+  async function syncMirror() {
+    setMirrorBusy(true);
+    setMirrorResult({ status: "syncing", sessions: 0, tasks: 0, deletions: 0 });
+    try { setMirrorResult(await syncLearningMirror(state)); }
+    catch { setMirrorResult({ status: "failed", sessions: 0, tasks: 0, deletions: 0 }); }
+    finally { setMirrorBusy(false); }
+  }
+
+  function mirrorMessage(result: LearningMirrorSyncResult | null) {
+    if (!result) return "";
+    if (result.status === "syncing") return l.mirrorSyncing;
+    if (result.status === "unchanged") return l.mirrorUnchanged;
+    if (result.status === "unauthorized") return l.mirrorUnauthorized;
+    if (result.status === "failed") return l.mirrorFailed;
+    return l.mirrorSynced.replace("{sessions}", String(result.sessions)).replace("{tasks}", String(result.tasks)).replace("{deletions}", String(result.deletions));
+  }
 
   async function request(path: string, method = "GET", action?: string) {
     return fetch(path, { method, cache: "no-store", credentials: "same-origin", headers: { ...(secret ? { Authorization: `Bearer ${secret}` } : {}), ...(action ? { "Content-Type": "application/json" } : {}) },
@@ -153,6 +189,14 @@ export function ExternalWritesPanel({ locale, showHeading = true }: { locale: Lo
     </label><Button onClick={() => void (secret ? connect() : refresh())} disabled={busy}>{secret ? l.connect : l.refresh}</Button>
     {connected ? <Button variant="ghost" onClick={() => void disconnect()} disabled={busy}>{l.disconnect}</Button> : null}</div>
     {message ? <p className="type-small mt-3 text-secondary" role="status">{message}</p> : null}
+    <div className="mt-5 border-t border-border pt-5">
+      <h3 className="type-h3 text-primary">{l.mirrorTitle}</h3>
+      <p className="type-small mt-2 text-secondary">{l.mirrorDescription}</p>
+      <p className="type-small mt-2 text-muted">{l.mirrorLocal.replace("{sessions}", String(state.studySessions.filter((item) => item.completed).length)).replace("{tasks}", String(state.tasks.length))}</p>
+      <div className="mt-3 flex flex-wrap items-center gap-3"><Button size="sm" variant="secondary" onClick={() => void syncMirror()} disabled={mirrorBusy}>{l.mirrorNow}</Button>
+        {mirrorResult ? <span className="type-small text-secondary" role="status">{mirrorMessage(mirrorResult)}</span> : null}
+      </div>
+    </div>
     <div className="mt-5 grid gap-3">{items.length ? items.map((item) => <div key={item.id} className="rounded-md border border-border p-4">
       <p className="type-label text-primary">{item.command.type} · {item.createdAt.slice(0, 16).replace("T", " ")}</p>
       <p className="type-small mt-2 break-words whitespace-pre-wrap text-secondary">{JSON.stringify(item.command, null, 2)}</p>
@@ -164,7 +208,7 @@ export function ExternalWritesPanel({ locale, showHeading = true }: { locale: Lo
         <Button size="sm" variant="secondary" onClick={() => void undoItem(item.id)} disabled={busy}>{l.undo}</Button> : null}</div>
     </div>) : <p className="type-small text-secondary">{l.noItems}</p>}</div>
     {state.externalWriteReceipts.some((entry) => !entry.revertedAt) ? <div className="mt-6 border-t border-border pt-4"><h3 className="type-h3 text-primary">{l.history}</h3>
-      <div className="mt-3 grid gap-2">{state.externalWriteReceipts.filter((entry) => !entry.revertedAt).slice(0, 10).map((entry) => <div key={entry.id} className="flex flex-wrap items-center justify-between gap-2"><span className="type-small text-secondary">{entry.type} · {entry.importedAt.slice(0, 10)}</span><Button size="sm" variant="ghost" onClick={() => void undoItem(entry.id)} disabled={busy || !secret}>{l.undo}</Button></div>)}</div>
+      <div className="mt-3 grid gap-2">{state.externalWriteReceipts.filter((entry) => !entry.revertedAt).slice(0, 10).map((entry) => <div key={entry.id} className="flex flex-wrap items-center justify-between gap-2"><span className="type-small text-secondary">{entry.type} · {entry.importedAt.slice(0, 10)}</span><Button size="sm" variant="ghost" onClick={() => void undoItem(entry.id)} disabled={busy || !connected}>{l.undo}</Button></div>)}</div>
     </div> : null}
   </Card></section>;
 }
