@@ -12,6 +12,7 @@
     "test:external-writes": "node scripts/verify-external-writes.mjs",
     "test:learning-read": "node scripts/verify-learning-mirror.mjs",
     "test:dashboard": "node scripts/verify-dashboard-analytics.mjs",
+    "test:cloud-sync": "node scripts/verify-cloud-sync.mjs",
     "preview:cloudflare": "opennextjs-cloudflare preview",
     "deploy:cloudflare": "opennextjs-cloudflare deploy"
   },

@@ -1,0 +1,5 @@
+import { NextResponse } from "next/server";
+import { accountFromRequest, cloudAccountDatabase, createCloudBackup, listCloudBackups, sameOrigin } from "@/data/server/cloud-account-store";
+export const runtime="nodejs"; export const dynamic="force-dynamic"; const headers={"Cache-Control":"no-store"};
+export async function GET(request:Request){const db=await cloudAccountDatabase();const account=db?await accountFromRequest(db,request):null;if(!db||!account)return NextResponse.json({error:"unauthorized"},{status:401,headers});return NextResponse.json({items:await listCloudBackups(db,account.account_id)},{headers});}
+export async function POST(request:Request){const db=await cloudAccountDatabase();if(!db||!sameOrigin(request))return NextResponse.json({error:"unavailable"},{status:403,headers});const account=await accountFromRequest(db,request);if(!account)return NextResponse.json({error:"unauthorized"},{status:401,headers});return NextResponse.json(await createCloudBackup(db,account.account_id),{headers});}

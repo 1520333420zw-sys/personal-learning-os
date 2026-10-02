@@ -122,8 +122,10 @@ export interface BetaPomodoroRuntime {
   id: BetaId; subjectId?: BetaId; taskId?: BetaId; durationMinutes: number; startedAt: string;
   targetEndAt?: string; remainingSeconds: number; status: "running" | "paused";
 }
+export interface BetaSyncDeletion { collection: string; id: BetaId; deletedAt: string; }
+export interface BetaCloudSyncState { deletions: BetaSyncDeletion[]; }
 export interface BetaState {
-  version: 4; ownerId: OwnerId; subjects: BetaSubject[]; chapters: BetaChapter[]; units: BetaUnit[];
+  version: 5; ownerId: OwnerId; subjects: BetaSubject[]; chapters: BetaChapter[]; units: BetaUnit[];
   knowledgePoints: BetaKnowledgePoint[]; tasks: BetaTask[]; studySessions: BetaStudySession[];
   pomodoroSessions: BetaPomodoroSession[]; studyProgress: BetaStudyProgress[];
   reviewItems: BetaReviewItem[]; questions: BetaQuestion[]; questionAttempts: BetaQuestionAttempt[];
@@ -135,5 +137,6 @@ export interface BetaState {
   finance: BetaFinanceEntry[]; goals: BetaGoal[]; pomodoroRuntime?: BetaPomodoroRuntime;
   planningProfile?: PlanningProfile;
   contentPacks?: Record<string, string>;
+  cloudSync: BetaCloudSyncState;
   externalWriteReceipts: { id: string; type: string; entityIds: string[]; importedAt: string; revertedAt?: string }[];
 }

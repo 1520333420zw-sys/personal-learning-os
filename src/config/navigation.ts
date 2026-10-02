@@ -5,6 +5,7 @@ export type NavigationKey =
   | "plan"
   | "history"
   | "inbox"
+  | "settings"
   | "psychology"
   | "politics"
   | "universal"
@@ -24,6 +25,7 @@ export type NavigationIcon =
   | "calendar"
   | "history"
   | "inbox"
+  | "settings"
   | "brain"
   | "politics"
   | "language"
@@ -52,6 +54,7 @@ export const navigationItems: readonly NavigationItem[] = [
   { id: "focus", labelKey: "focus", href: "/focus", group: "today", icon: "timer", mobilePrimary: true },
   { id: "history", labelKey: "history", href: "/history", group: "today", icon: "history", mobilePrimary: false },
   { id: "inbox", labelKey: "inbox", href: "/inbox", group: "today", icon: "inbox", mobilePrimary: false },
+  { id: "settings", labelKey: "settings", href: "/settings", group: "today", icon: "settings", mobilePrimary: false },
   { id: "psychology", labelKey: "psychology", href: "/psychology", group: "learn", icon: "brain", mobilePrimary: false },
   { id: "politics", labelKey: "politics", href: "/politics", group: "learn", icon: "politics", mobilePrimary: false },
   { id: "vocabulary", labelKey: "vocabulary", href: "/english", group: "learn", icon: "language", mobilePrimary: false },

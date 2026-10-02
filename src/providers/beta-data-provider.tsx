@@ -4,12 +4,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { BetaState } from "@/domain/beta";
 import { BETA_STORAGE_KEY, createInitialBetaState, loadBetaState, migrateBetaState, saveBetaState } from "@/data/browser";
 import { browserPdfStorage } from "@/data/storage/pdf-storage";
+import { stampBetaMutation } from "@/data/browser/cloud-state-sync";
 
 interface BetaDataValue {
   state: BetaState;
   ready: boolean;
   mutate: (recipe: (draft: BetaState) => void) => void;
   importJson: (json: string) => { ok: true } | { ok: false; error: string };
+  replaceState: (state: BetaState) => void;
   exportJson: () => string;
   clearAll: () => void;
 }
@@ -43,7 +45,7 @@ export function BetaDataProvider({ children }: { children: ReactNode }) {
     setState((current) => {
       const next = structuredClone(current);
       recipe(next);
-      return next;
+      return stampBetaMutation(current, next);
     });
   }, []);
 
@@ -51,12 +53,20 @@ export function BetaDataProvider({ children }: { children: ReactNode }) {
     try {
       const parsed: unknown = JSON.parse(json);
       const migrated = migrateBetaState(parsed);
-      saveBetaState(migrated);
-      setState(migrated);
+      setState((current) => {
+        const next = stampBetaMutation(current, migrated);
+        saveBetaState(next);
+        return next;
+      });
       return { ok: true as const };
     } catch {
       return { ok: false as const, error: "INVALID_JSON" };
     }
+  }, []);
+
+  const replaceState = useCallback((next: BetaState) => {
+    saveBetaState(next);
+    setState(next);
   }, []);
 
   const clearAll = useCallback(() => {
@@ -67,10 +77,10 @@ export function BetaDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<BetaDataValue>(() => ({
-    state, ready, mutate, importJson,
+    state, ready, mutate, importJson, replaceState,
     exportJson: () => JSON.stringify(state, null, 2),
     clearAll,
-  }), [state, ready, mutate, importJson, clearAll]);
+  }), [state, ready, mutate, importJson, replaceState, clearAll]);
 
   if (!ready) {
     return <div className="grid min-h-screen place-items-center text-sm text-muted" aria-busy="true">Personal Learning OS</div>;

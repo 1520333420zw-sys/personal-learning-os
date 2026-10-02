@@ -8,6 +8,7 @@ import { BetaDataProvider } from "@/providers";
 import { AiAssistant } from "@/features/beta/ai-assistant";
 import { ExternalWriteAutoSync } from "@/features/beta/external-write-auto-sync";
 import { LearningMirrorAutoSync } from "@/features/beta/learning-mirror-auto-sync";
+import { CloudSyncAuto } from "@/features/beta/cloud-sync-auto";
 
 export default async function DashboardLayout({
   children,
@@ -26,6 +27,7 @@ export default async function DashboardLayout({
     <BetaDataProvider>
       <ExternalWriteAutoSync />
       <LearningMirrorAutoSync />
+      <CloudSyncAuto />
       <AppShell locale={locale} dictionary={getDictionary(locale)}>
         {children}
         <AiAssistant locale={locale} />
