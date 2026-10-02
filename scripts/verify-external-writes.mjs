@@ -116,7 +116,7 @@ for (const operationId of ["listLearningCatalog", "queueLearningWrite", "revokeL
 assert.equal((unifiedSchema.match(/^  operationId:/gm) ?? []).length, 0);
 assert.equal((unifiedSchema.match(/operationId:/g) ?? []).length, 6);
 assert.match(unifiedSchema, /requestBody:\s+[\s\S]*?schema:\s+type: object/);
-assert.doesNotMatch(unifiedSchema, /schemas:/);
+assert.match(unifiedSchema, /components:\s+schemas: \{\}/);
 assert.doesNotMatch(unifiedSchema, /oneOf:|anyOf:/);
 
 const autoState = store.createInitialBetaState();

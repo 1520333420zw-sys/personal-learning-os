@@ -254,6 +254,7 @@ paths:
         '503':
           description: Read mirror or read secret is not configured.
 components:
+  schemas: {}
   securitySchemes:
     gptActionToken:
       type: http
