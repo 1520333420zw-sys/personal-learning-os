@@ -11,23 +11,24 @@ import { addLocalDays } from "@/lib/date";
 import { areaClass, BetaPage, EmptyState, Field, fieldClass, localDate, Modal, nowEntity, Tabs, uid } from "./shared";
 import { PlanningPanel } from "./planning-panel";
 
-type Filter = "today" | "week" | "overdue" | "completed" | "unfinished" | "all";
+type Filter = "today" | "tomorrow" | "week" | "overdue" | "completed" | "unfinished" | "all";
 
 export function BetaStudyPlan({ locale }: { locale: Locale }) {
   const m = getBetaMessages(locale); const { state, mutate } = useBetaData(); const router = useRouter();
   const [filter, setFilter] = useState<Filter>("today"); const [subjectFilter, setSubjectFilter] = useState("all");
-  const [editing, setEditing] = useState<BetaTask | "new" | null>(null); const today = localDate(); const weekEnd = addLocalDays(today, 6);
+  const [editing, setEditing] = useState<BetaTask | "new" | null>(null); const today = localDate(); const tomorrow = addLocalDays(today, 1); const weekEnd = addLocalDays(today, 6);
   const tasks = useMemo(() => state.tasks.filter((task) => {
     if (subjectFilter !== "all" && task.subjectId !== subjectFilter) return false;
     if (filter === "today") return task.date === today;
+    if (filter === "tomorrow") return task.date === tomorrow;
     if (filter === "week") return task.date >= today && task.date <= weekEnd;
     if (filter === "overdue") return task.date < today && task.status !== "completed";
     if (filter === "completed") return task.status === "completed";
     if (filter === "unfinished") return task.status !== "completed";
     return true;
-  }).sort((a,b) => a.date.localeCompare(b.date) || priorityOrder(b.priority)-priorityOrder(a.priority)), [state.tasks, filter, subjectFilter, today, weekEnd]);
+  }).sort((a,b) => a.date.localeCompare(b.date) || priorityOrder(b.priority)-priorityOrder(a.priority)), [state.tasks, filter, subjectFilter, today, tomorrow, weekEnd]);
   const summary = { total: tasks.length, completed: tasks.filter((t) => t.status === "completed").length, planned: tasks.reduce((n,t) => n+t.plannedMinutes,0), actual: tasks.reduce((n,t) => n+t.actualMinutes,0) };
-  const tabs = (["today","week","unfinished","overdue","completed","all"] as Filter[]).map((id) => ({ id, label: m.plan[id] }));
+  const tabs = (["today","tomorrow","week","unfinished","overdue","completed","all"] as Filter[]).map((id) => ({ id, label: id === "tomorrow" ? (locale === "en" ? "Tomorrow" : "明日") : m.plan[id] }));
 
   function updateStatus(task: BetaTask, status: BetaTaskStatus) { mutate((draft) => { const item = draft.tasks.find((x) => x.id === task.id); if (item) { item.status = status; item.completedAt = status === "completed" ? new Date().toISOString() : undefined; item.updatedAt = new Date().toISOString(); } }); }
   function remove(task: BetaTask) { if (!window.confirm(m.confirmDelete)) return; mutate((draft) => { draft.tasks = draft.tasks.filter((x) => x.id !== task.id); }); }
