@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Personal Learning OS GPT gateway
-  version: 1.0.0
+  version: 1.2.0
   description: >-
     Read the owner's synchronized learning mirror and queue validated learning actions for
     browser import. Writes remain pending until the owner browser imports them. One dedicated
@@ -253,6 +253,20 @@ paths:
           description: Missing or invalid read token.
         '503':
           description: Read mirror or read secret is not configured.
+  /api/gpt-learning-data/planning-context:
+    get:
+      operationId: getPlanningContext
+      summary: Get the grounded review queue, weak-point evidence, profile and local plan suggestions.
+      description: Use this before answering what the owner should study. If dataSufficient is false or evidence is empty, explicitly say that recorded data is insufficient. Never invent IDs.
+      responses:
+        '200':
+          description: Planning profile, review queue, evidence-based weak points and local plan suggestions synchronized by the owner browser.
+        '401':
+          description: Missing or invalid GPT gateway token.
+        '404':
+          description: The owner browser has not synchronized planning context yet.
+        '503':
+          description: Planning context storage is unavailable.
 components:
   schemas: {}
   securitySchemes:

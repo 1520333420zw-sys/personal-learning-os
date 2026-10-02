@@ -45,4 +45,4 @@ globalThis.fetch = async () => new Response("not JSON", { status: 200 });
 await assert.rejects(configuredAIProvider().generateJson("Return JSON", "test"), (error) => error instanceof AIProviderError && error.kind === "response_json");
 globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ finish_reason: "stop", message: { content: "not JSON" } }] }), { status: 200 });
 await assert.rejects(configuredAIProvider().generateJson("Return JSON", "test"), (error) => error instanceof AIProviderError && error.kind === "model_json");
-console.log("Six action schemas and Chat Completions provider error categories: passed (mocked transport only)");
+console.log("AI action schemas and Chat Completions provider error categories: passed (mocked transport only)");

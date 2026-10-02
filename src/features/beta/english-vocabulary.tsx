@@ -6,6 +6,7 @@ import type { BetaVocabulary } from "@/domain/beta";
 import type { Locale } from "@/i18n/config";
 import { useBetaData } from "@/providers";
 import { areaClass, EmptyState, Field, fieldClass, localDate, Modal, nowEntity, Tabs, uid } from "./shared";
+import { applyReviewRating, reviewDefaults } from "@/domain/review/review-engine";
 
 const labels = {
   "zh-CN": { add: "添加单词", search: "搜索单词", all: "今日单词", review: "今日复习", favorite: "收藏", mastered: "已掌握", know: "认识", vague: "模糊", unknown: "不认识", word: "单词", phonetic: "音标", meaning: "中文释义", example: "例句", save: "保存", close: "关闭", empty: "当前考试分类下还没有符合条件的单词。", export: "导出词库", import: "导入词库", invalid: "导入失败：请选择本系统导出的有效词库 JSON。" },
@@ -21,11 +22,11 @@ export function EnglishVocabulary({ locale, exam }: { locale: Locale; exam: Beta
     mutate((draft) => {
       const record = draft.vocabulary.find((item) => item.id === word.id); if (!record) return;
       const count = record.reviewCount + 1; const familiarity = value === "known" && count >= 3 ? "mastered" : value;
-      const next = new Date(); next.setDate(next.getDate() + (value === "new" ? 0 : value === "vague" ? 1 : 7));
-      const nextReviewAt = familiarity === "mastered" ? undefined : localDate(next);
+      let review=draft.reviewItems.find((item)=>item.kind==="vocabulary"&&item.targetId===word.id&&item.status==="due");
+      if(!review){review={...nowEntity(uid("review"),draft.ownerId),kind:"vocabulary",targetId:word.id,title:word.word,dueDate:today,status:"due",subjectId:draft.subjects.find((item)=>item.slug==="english")?.id,...reviewDefaults("vocabulary")};draft.reviewItems.push(review);}
+      applyReviewRating(review,value==="new"?"again":value==="vague"?"hard":"good");
+      const nextReviewAt=familiarity==="mastered"?undefined:review.dueDate;if(familiarity==="mastered")review.status="mastered";
       Object.assign(record, { familiarity, reviewCount: count, lastReviewedAt: new Date().toISOString(), nextReviewAt, updatedAt: new Date().toISOString() });
-      draft.reviewItems = draft.reviewItems.filter((item) => !(item.kind === "vocabulary" && item.targetId === word.id && item.status === "due"));
-      if (nextReviewAt) draft.reviewItems.push({ ...nowEntity(uid("review"), draft.ownerId), kind: "vocabulary", targetId: word.id, title: word.word, dueDate: nextReviewAt, status: "due" });
     });
   }
   function add(event: FormEvent<HTMLFormElement>) {

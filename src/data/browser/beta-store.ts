@@ -3,6 +3,7 @@ import type {
   BetaEntity,
   BetaKnowledgePoint,
   BetaQuestion,
+  BetaRecitation,
   BetaState,
   BetaSubject,
   OwnerId,
@@ -63,6 +64,7 @@ function question(
     ...createBetaEntity(id), subjectId, chapterId, knowledgePointId,
     examType: "system-practice", questionType: type, stem, options, answer, explanation,
     difficulty: "easy", source: "Personal Learning OS 系统原创练习题", tags: ["系统练习题"],
+    sourceType:"system",sourceLabel:"系统练习",isOfficial:false,
   };
 }
 
@@ -124,9 +126,7 @@ export function createInitialBetaState(): BetaState {
     question("q-english-2", english, "english-reading", "", "Which sentence is grammatically correct?", [{id:"a",text:"She have finished."},{id:"b",text:"She has finished."},{id:"c",text:"She finishing."},{id:"d",text:"She finish yesterday."}], ["b"], "The third-person singular present perfect form is ‘has finished’."),
     question("q-english-3", english, "english-vocabulary", "", "The word ‘evaluate’ most nearly means to assess something carefully.", [{id:"true",text:"True"},{id:"false",text:"False"}], ["true"], "Evaluate means to judge or assess quality, value, or significance.", "true_false"),
   ];
-  const recitationPoints = chapters.filter((entry) => entry.subjectId === psychology || entry.subjectId === politics).map((entry) =>
-    systemPoints.filter((point) => point.chapterId === entry.id).sort((left, right) => (right.importance ?? 0) - (left.importance ?? 0))[0]
-  ).filter((point): point is BetaKnowledgePoint => Boolean(point));
+  const recitationPoints = systemPoints;
   const initialRecitations = recitationPoints.map((point) => ({
     ...createBetaEntity(`recitation-${point.id}`), title: point.title, category: chapters.find((entry) => entry.id === point.chapterId)?.title ?? "",
     content: `${point.coreConcept}\n${point.keyPoints}`, status: "today" as const, favorite: false, nextReviewAt: toLocalDateKey(new Date()),
@@ -139,7 +139,12 @@ export function createInitialBetaState(): BetaState {
     favorites: [], vocabulary: [], reading: [], readingNotes: [], recitations: initialRecitations, notes: [], books: [],
     englishContent: [], subjectiveQuestions: createCoreSubjectiveQuestions(), currentAffairs: [], pdfDocuments: [], pdfNotes: [], resources: [],
     habits: [], exercises: [], sleep: [], finance: [], goals: [],
-    contentPacks: { core: CORE_CONTENT_VERSION, universal: UNIVERSAL_CONTENT_VERSION }, cloudSync: { deletions: [] }, externalWriteReceipts: [],
+    contentPacks: { core: CORE_CONTENT_VERSION, universal: UNIVERSAL_CONTENT_VERSION },
+    contentPackManifests:[
+      {packId:"core-psychology",version:CORE_CONTENT_VERSION,locale:"zh-CN",subject:"subject-psychology-312",publishedAt:"2026-10-02",checksum:"core-psychology-2026-10"},
+      {packId:"core-politics",version:CORE_CONTENT_VERSION,locale:"zh-CN",subject:"subject-politics",publishedAt:"2026-10-02",checksum:"core-politics-2026-10"},
+      {packId:"universal-foundations",version:UNIVERSAL_CONTENT_VERSION,locale:"zh-CN",subject:"universal",publishedAt:"2026-10-02",checksum:"universal-foundations-2026-10"},
+    ],cloudSync: { deletions: [] }, externalWriteReceipts: [],
   };
 }
 
@@ -157,20 +162,27 @@ export function loadBetaState(): BetaState {
 }
 
 export function serializeBetaState(state: BetaState): string {
-  const packagedPointIds = new Set(createInitialBetaState().knowledgePoints.filter((point) => point.contentVersion).map((point) => point.id));
+  const initial = createInitialBetaState();
+  const packagedPointIds = new Set(initial.knowledgePoints.filter((point) => point.contentVersion).map((point) => point.id));
   const packagedQuestionIds = new Set([...createCoreQuestions(), ...createUniversalContent().questions].map((question) => question.id));
   const packagedWrittenIds = new Set(createCoreSubjectiveQuestions().map((question) => question.id));
+  const packagedRecitationIds = new Set(initial.recitations.map((item) => item.id));
   const contentPointState = Object.fromEntries(state.knowledgePoints.filter((point) => packagedPointIds.has(point.id)).map((point) => [point.id, {
     personalNote: point.personalNote, mastery: point.mastery, favorite: point.favorite,
     lastStudiedAt: point.lastStudiedAt, nextReviewAt: point.nextReviewAt, updatedAt: point.updatedAt,
   }]));
   const contentWrittenAnswers = Object.fromEntries(state.subjectiveQuestions.filter((question) => packagedWrittenIds.has(question.id)).map((question) => [question.id, { answer: question.ownAnswer, updatedAt: question.updatedAt }]));
+  const contentRecitationState = Object.fromEntries(state.recitations.filter((item) => packagedRecitationIds.has(item.id)).map((item) => [item.id, {
+    status: item.status, favorite: item.favorite, nextReviewAt: item.nextReviewAt,
+    lastReviewedAt: item.lastReviewedAt, reviewCount: item.reviewCount, mastery: item.mastery, updatedAt: item.updatedAt,
+  }]));
   // Keep immutable content-pack text out of the user's local data key. Only personal overlays persist.
   return JSON.stringify({ ...state,
     knowledgePoints: state.knowledgePoints.filter((point) => !packagedPointIds.has(point.id)),
     questions: state.questions.filter((question) => !packagedQuestionIds.has(question.id)),
     subjectiveQuestions: state.subjectiveQuestions.filter((question) => !packagedWrittenIds.has(question.id)),
-    contentPointState, contentWrittenAnswers,
+    recitations: state.recitations.filter((item) => !packagedRecitationIds.has(item.id)),
+    contentPointState, contentWrittenAnswers, contentRecitationState,
   });
 }
 
@@ -189,7 +201,7 @@ export function isBetaState(value: unknown): value is BetaState | (Omit<BetaStat
 export function migrateBetaState(value: unknown): BetaState {
   if (!isBetaState(value)) throw new Error("Invalid beta data");
   const initial = createInitialBetaState();
-  const prior = value as Partial<BetaState> & { contentPointState?: Record<string, Pick<BetaKnowledgePoint, "personalNote" | "mastery" | "favorite" | "lastStudiedAt" | "nextReviewAt"> & { updatedAt?: string }>; contentWrittenAnswers?: Record<string, string | { answer: string; updatedAt?: string }> };
+  const prior = value as Partial<BetaState> & { contentPointState?: Record<string, Pick<BetaKnowledgePoint, "personalNote" | "mastery" | "favorite" | "lastStudiedAt" | "nextReviewAt"> & { updatedAt?: string }>; contentWrittenAnswers?: Record<string, string | { answer: string; updatedAt?: string }>; contentRecitationState?: Record<string, Partial<BetaRecitation>> };
   const mergeCatalog = <T extends { id: string }>(saved: T[] | undefined, defaults: T[]) => {
     const ids = new Set((saved ?? []).map((item) => item.id));
     return [...(saved ?? []), ...defaults.filter((item) => !ids.has(item.id))];
@@ -214,10 +226,20 @@ export function migrateBetaState(value: unknown): BetaState {
     knowledgePoints: mergedPoints,
     questions: mergeCatalog(prior.questions, initial.questions),
     tasks: prior.tasks ?? [], studySessions: prior.studySessions ?? [],
-    reviewItems: prior.reviewItems ?? [], questionAttempts: prior.questionAttempts ?? [],
+    reviewItems: (prior.reviewItems ?? []).map((item) => ({ reviewCount:0,ease:2.3,difficulty:item.kind==="question"?6:5,intervalDays:0,
+      source:item.kind==="question"?"mistake":item.kind==="knowledge"?"knowledge":item.kind, ...item })), questionAttempts: prior.questionAttempts ?? [],
     wrongQuestions: prior.wrongQuestions ?? [], favorites: prior.favorites ?? [],
     vocabulary: prior.vocabulary ?? [], reading: prior.reading ?? [],
-    recitations: prior.contentPacks?.core === CORE_CONTENT_VERSION ? (prior.recitations ?? []) : mergeCatalog(prior.recitations, initial.recitations), notes: prior.notes ?? [], books: prior.books ?? [],
+    recitations: mergeCatalog(prior.recitations, initial.recitations).map((item) => {
+      const packaged = initial.recitations.find((seed) => seed.id === item.id);
+      if (!packaged) return item;
+      const saved = prior.recitations?.find((entry) => entry.id === item.id);
+      const overlay = prior.contentRecitationState?.[item.id] ?? saved;
+      return { ...item, ...packaged, status: overlay?.status ?? packaged.status, favorite: overlay?.favorite ?? packaged.favorite,
+        nextReviewAt: overlay?.nextReviewAt ?? packaged.nextReviewAt, lastReviewedAt: overlay?.lastReviewedAt,
+        reviewCount: overlay?.reviewCount ?? packaged.reviewCount, mastery: overlay?.mastery ?? packaged.mastery,
+        updatedAt: overlay?.updatedAt ?? item.updatedAt };
+    }), notes: prior.notes ?? [], books: prior.books ?? [],
     resources: prior.resources ?? [], habits: prior.habits ?? [], exercises: prior.exercises ?? [],
     sleep: prior.sleep ?? [], finance: prior.finance ?? [], goals: prior.goals ?? [],
     englishContent: prior.englishContent ?? [], subjectiveQuestions: mergeCatalog(prior.subjectiveQuestions, initial.subjectiveQuestions).map((question) => {
@@ -232,5 +254,6 @@ export function migrateBetaState(value: unknown): BetaState {
     externalWriteReceipts: Array.isArray(prior.externalWriteReceipts) ? prior.externalWriteReceipts : [],
     cloudSync: { deletions: Array.isArray(prior.cloudSync?.deletions) ? prior.cloudSync.deletions : [] },
     contentPacks: initial.contentPacks,
+    contentPackManifests: [...(prior.contentPackManifests ?? []).filter((saved) => !initial.contentPackManifests?.some((current) => current.packId === saved.packId)), ...(initial.contentPackManifests ?? [])],
   };
 }

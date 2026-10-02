@@ -1,8 +1,9 @@
 import type { BetaRecitation, BetaState } from "@/domain/beta";
 import { localDate, nowEntity, uid } from "./shared";
+import { applyReviewRating, reviewDefaults, type ReviewRating } from "@/domain/review/review-engine";
 
 export type RecallRating = "forgot" | "vague" | "remembered" | "mastered";
-const daysUntilNext: Record<RecallRating, number> = { forgot: 1, vague: 2, remembered: 5, mastered: 14 };
+const reviewRating:Record<RecallRating,ReviewRating>={forgot:"again",vague:"hard",remembered:"good",mastered:"easy"};
 
 export function dueRecitations(state: BetaState, date = localDate()): BetaRecitation[] {
   return state.recitations.filter((item) => item.status !== "mastered" && (!item.nextReviewAt || item.nextReviewAt <= date));
@@ -11,21 +12,16 @@ export function dueRecitations(state: BetaState, date = localDate()): BetaRecita
 export function reviewRecitation(state: BetaState, id: string, rating: RecallRating, now = new Date()): void {
   const item = state.recitations.find((record) => record.id === id);
   if (!item) return;
-  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilNext[rating]);
+  let review=state.reviewItems.find((record)=>record.kind==="recitation"&&record.targetId===id&&record.status==="due");
+  if(!review){review={...nowEntity(uid("review"),state.ownerId),kind:"recitation",targetId:id,title:item.title,dueDate:localDate(now),status:"due",subjectId:item.subjectId,chapterId:item.chapterId,...reviewDefaults("recitation")};state.reviewItems.push(review);}
+  applyReviewRating(review,reviewRating[rating],now);
   item.lastReviewedAt = now.toISOString();
   item.reviewCount = (item.reviewCount ?? 0) + 1;
-  item.nextReviewAt = localDate(next);
+  item.nextReviewAt = review.dueDate;
   item.status = rating === "mastered" ? "mastered" : "review";
   item.mastery = rating === "mastered" ? "mastered" : rating === "forgot" ? "learning" : "reviewing";
   item.updatedAt = now.toISOString();
-  for (const review of state.reviewItems.filter((record) => record.kind === "recitation" && record.targetId === id && record.status === "due")) {
-    review.status = "completed";
-    review.completedAt = now.toISOString();
-  }
-  if (rating !== "mastered") state.reviewItems.push({
-    ...nowEntity(uid("review"), state.ownerId), kind: "recitation", targetId: id,
-    title: item.title, dueDate: item.nextReviewAt, status: "due",
-  });
+  review.status=rating==="mastered"?"mastered":"due";
 }
 
 export function addKnowledgeToRecitation(state: BetaState, pointId: string): void {

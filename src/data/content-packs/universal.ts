@@ -108,7 +108,7 @@ export function createUniversalContent(): { subjects: BetaSubject[]; chapters: B
     chapterId: `chapter-universal-${path.slug}-intro`, knowledgePointId: `point-universal-${path.slug}-1`,
     examType: "system-practice", questionType: "single" as const, stem: path.quiz[0],
     options: path.quiz[1].map((text, index) => ({ id: String(index), text })), answer: [String(path.quiz[2])],
-    explanation: path.quiz[3], difficulty: "easy" as const, source: "Personal Learning OS 系统原创练习题", tags: ["系统练习题"],
+    explanation: path.quiz[3], difficulty: "easy" as const, source: "Personal Learning OS 系统原创练习题", sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags: ["系统练习题"],
   }));
   return { subjects, chapters, points, questions };
 }

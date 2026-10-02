@@ -110,11 +110,11 @@ assert.equal(await repository.syncAuthorized(new Request("https://example.com/ap
 assert.match(repository.syncSessionCookie(session), /HttpOnly; Secure; SameSite=Strict/);
 
 const unifiedSchema = fs.readFileSync("public/chatgpt-personal-learning-os.openapi.yaml", "utf8");
-for (const operationId of ["listLearningCatalog", "queueLearningWrite", "revokeLearningWrite", "getLearningSummary", "listRecentStudySessions", "listLearningTasks"]) {
+for (const operationId of ["listLearningCatalog", "queueLearningWrite", "revokeLearningWrite", "getLearningSummary", "listRecentStudySessions", "listLearningTasks", "getPlanningContext"]) {
   assert.match(unifiedSchema, new RegExp(`operationId: ${operationId}`));
 }
 assert.equal((unifiedSchema.match(/^  operationId:/gm) ?? []).length, 0);
-assert.equal((unifiedSchema.match(/operationId:/g) ?? []).length, 6);
+assert.equal((unifiedSchema.match(/operationId:/g) ?? []).length, 7);
 assert.match(unifiedSchema, /requestBody:\s+[\s\S]*?schema:\s+type: object/);
 assert.match(unifiedSchema, /components:\s+schemas: \{\}/);
 assert.doesNotMatch(unifiedSchema, /oneOf:|anyOf:/);

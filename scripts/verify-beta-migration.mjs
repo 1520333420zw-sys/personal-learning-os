@@ -26,6 +26,7 @@ previous.version = 1;
 for (const key of ["units", "englishContent", "subjectiveQuestions", "currentAffairs", "pdfDocuments", "pdfNotes"]) delete previous[key];
 previous.tasks.push({ id: "kept-task", ownerId: "local-owner", createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z", title: "Keep my task", description: "", date: "2026-01-01", plannedMinutes: 25, actualMinutes: 0, priority: "medium", status: "todo", sourceType: "manual" });
 previous.knowledgePoints[0].personalNote = "Keep my note";
+previous.contentPackManifests = previous.contentPackManifests.map((item) => item.packId === "core-psychology" ? { ...item, version: "old" } : item);
 const migrated = migrateBetaState(previous);
 assert.equal(migrated.version, 5);
 assert.deepEqual(migrated.cloudSync, { deletions: [] });
@@ -38,17 +39,21 @@ assert.ok(migrated.knowledgePoints[0].unitId);
 assert.equal(migrated.subjects.filter((item) => item.id.startsWith("subject-universal-")).length, 13);
 assert.ok(migrated.knowledgePoints.some((point) => point.id === "system-psych-statistics-p-value"));
 assert.ok(migrated.questions.some((question) => question.id === "question-universal-mathematics-intro"));
+assert.notEqual(migrated.contentPackManifests.find((item) => item.packId === "core-psychology")?.version, "old");
 const stored = new Map();
 globalThis.window = { localStorage: { getItem: (key) => stored.get(key) ?? null, setItem: (key, value) => stored.set(key, value) } };
 const packaged = migrated.knowledgePoints.find((point) => point.id === "system-psych-statistics-p-value");
 packaged.personalNote = "My own explanation"; packaged.mastery = "reviewing";
+const packagedRecitation = migrated.recitations.find((item) => item.knowledgePointId === packaged.id);
+packagedRecitation.status = "review"; packagedRecitation.reviewCount = 2;
 saveBetaState(migrated);
 assert.ok(!stored.get(BETA_STORAGE_KEY).includes("p 值是在零假设"), "Packaged text should not be stored with personal data");
 const restored = loadBetaState();
 assert.equal(restored.knowledgePoints.find((point) => point.id === packaged.id)?.personalNote, "My own explanation");
 assert.equal(restored.knowledgePoints.find((point) => point.id === packaged.id)?.mastery, "reviewing");
+assert.equal(restored.recitations.find((item) => item.id === packagedRecitation.id)?.reviewCount, 2);
 const { deriveSystemExamPoints } = load("src/domain/learning/exam-point.ts");
-const { parsePlanChanges } = load("src/domain/planning/ai-plan.ts");
+const { applyConfirmedPlanChanges, parsePlanChanges } = load("src/domain/planning/ai-plan.ts");
 const coreChapters = restored.chapters.filter((chapter) => chapter.subjectId === "subject-psychology-312" || chapter.subjectId === "subject-politics");
 for (const chapter of coreChapters) {
   assert.ok(restored.knowledgePoints.some((point) => point.chapterId === chapter.id), `${chapter.id} has no content`);
@@ -73,6 +78,13 @@ assert.equal(parsePlanChanges({ changes: [
   { kind: "move", taskId: "locked", date: "2026-09-18", reason: "One" },
   { kind: "move", taskId: "locked", date: "2026-09-19", reason: "Two" },
 ] }, adjustableContext), null);
+const confirmed = parsePlanChanges({ changes: [{ kind: "add", title: "Confirmed task", subjectId: "subject-psychology-312", date: "2026-09-17", minutes: 20, reason: "Evidence-based suggestion" }] }, planContext);
+assert.equal(planContext.tasks.length, 1, "Preview validation must not write tasks");
+const applied = applyConfirmedPlanChanges(planContext.tasks, confirmed, "local-owner", () => "confirmed-task", new Date("2026-09-17T00:00:00.000Z"));
+assert.equal(applied.length, 2);
+assert.equal(applied[1].id, "confirmed-task");
+assert.equal(applied[1].sourceType, "ai");
+assert.equal(planContext.tasks.length, 1, "Confirmed application must not mutate the preview context");
 assert.throws(() => migrateBetaState({ version: 2, ownerId: "x" }));
 console.log("Beta v1 → v5 migration, content packs, system exam points and AI plan guardrails: passed");
 for (const subjectId of ["subject-psychology-312", "subject-politics"]) {

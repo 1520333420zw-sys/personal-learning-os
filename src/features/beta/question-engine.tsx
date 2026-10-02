@@ -7,6 +7,7 @@ import { getBetaMessages } from "@/i18n/beta-messages";
 import { useBetaData } from "@/providers";
 import { cn } from "@/lib/cn";
 import { EmptyState, Field, fieldClass, localDate, nowEntity, uid } from "./shared";
+import { applyReviewRating, reviewDefaults } from "@/domain/review/review-engine";
 
 export function QuestionEngine({ locale, subjectId, wrongOnly = false, initialChapterId }: { locale: Locale; subjectId?: string; wrongOnly?: boolean; initialChapterId?: string }) {
   const m = getBetaMessages(locale); const { state, mutate } = useBetaData();
@@ -30,8 +31,8 @@ export function QuestionEngine({ locale, subjectId, wrongOnly = false, initialCh
         const existing = draft.wrongQuestions.find((w) => w.questionId === question.id);
         if (existing) { existing.mastered = false; existing.lastAttemptAt = now; existing.updatedAt = now; }
         else draft.wrongQuestions.push({ ...nowEntity(uid("wrong"), draft.ownerId), questionId: question.id, mastered: false, lastAttemptAt: now });
-        if (!draft.reviewItems.some((r) => r.kind === "question" && r.targetId === question.id && r.status === "due")) draft.reviewItems.push({ ...nowEntity(uid("review"), draft.ownerId), kind: "question", targetId: question.id, title: question.stem, dueDate: localDate(), status: "due" });
-      }
+        let review=draft.reviewItems.find((r)=>r.kind==="question"&&r.targetId===question.id&&r.status==="due");if(!review){review={...nowEntity(uid("review"),draft.ownerId),kind:"question",targetId:question.id,title:question.stem,dueDate:localDate(),status:"due",subjectId:question.subjectId,chapterId:question.chapterId,...reviewDefaults("question")};draft.reviewItems.push(review);}applyReviewRating(review,"again");
+      } else {const review=draft.reviewItems.find((r)=>r.kind==="question"&&r.targetId===question.id&&r.status==="due");if(review)applyReviewRating(review,"good");}
     }); setSubmitted(true);
   }
   function next() { setIndex((i) => i + 1); setSelected([]); setSubmitted(false); }

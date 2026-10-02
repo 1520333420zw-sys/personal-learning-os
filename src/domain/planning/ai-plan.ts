@@ -59,6 +59,22 @@ export function parsePlanChanges(value: unknown, context: PlanContext): PlanChan
   return changes;
 }
 
+export function applyConfirmedPlanChanges(tasks: BetaTask[], changes: PlanChange[], ownerId: string, createId: () => string, now = new Date()): BetaTask[] {
+  const timestamp = now.toISOString();
+  const next = tasks.map((task) => ({ ...task }));
+  for (const change of changes) {
+    if (change.kind === "add") next.push({ id: createId(), ownerId, createdAt: timestamp, updatedAt: timestamp,
+      title: change.title, description: change.reason, subjectId: change.subjectId, date: change.date,
+      plannedMinutes: change.minutes, actualMinutes: 0, priority: "medium", status: "todo",
+      sourceType: "ai", planningControl: "adjustable" });
+    else {
+      const task = next.find((item) => item.id === change.taskId && item.planningControl === "adjustable" && item.status !== "completed");
+      if (task) { task.date = change.date; task.updatedAt = timestamp; }
+    }
+  }
+  return next;
+}
+
 function addDays(date: string, days: number): string {
   const [year, month, day] = date.split("-").map(Number);
   const result = new Date(year, month - 1, day + days);

@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { Badge, Button, Card } from "@/components/ui";
 import type { PlanningDay, PlanningProfile } from "@/domain/beta";
-import { parsePlanChanges, type PlanChange, type PlanContext } from "@/domain/planning/ai-plan";
+import { applyConfirmedPlanChanges, parsePlanChanges, type PlanChange, type PlanContext } from "@/domain/planning/ai-plan";
 import type { Locale } from "@/i18n/config";
 import { addLocalDays } from "@/lib/date";
 import { useBetaData } from "@/providers";
-import { Field, fieldClass, localDate, nowEntity, uid } from "./shared";
+import { Field, fieldClass, localDate, uid } from "./shared";
 
 function defaultProfile(): PlanningProfile {
   return { goal: "", dailyMinutes: 120, weeklyGoalMinutes: 600, subjectPriorities: {}, weakSubjectIds: [], workHours: "", sleepHours: "", restPreferences: "", days: [], updatedAt: new Date().toISOString() };
@@ -50,11 +50,7 @@ export function PlanningPanel({ locale }: { locale: Locale }) {
   function apply() {
     const validated = parsePlanChanges({ changes }, context());
     if (!validated) { setMessage(en ? "Plan changed since preview. Generate again." : "预览后计划已有变化，请重新生成。"); setChanges([]); return; }
-    mutate((draft) => { for (const change of validated) {
-      if (change.kind === "add") draft.tasks.push({ ...nowEntity(uid("task"), draft.ownerId), title: change.title, description: change.reason, subjectId: change.subjectId,
-        date: change.date, plannedMinutes: change.minutes, actualMinutes: 0, priority: "medium", status: "todo", sourceType: "ai", planningControl: "adjustable" });
-      else { const task = draft.tasks.find((item) => item.id === change.taskId && item.planningControl === "adjustable" && item.status !== "completed"); if (task) { task.date = change.date; task.updatedAt = new Date().toISOString(); } }
-    } }); setChanges([]); setMessage(en ? "Confirmed changes saved to local tasks." : "已确认，变更已写入本地任务。");
+    mutate((draft) => { draft.tasks = applyConfirmedPlanChanges(draft.tasks, validated, draft.ownerId, () => uid("task")); }); setChanges([]); setMessage(en ? "Confirmed changes saved to local tasks." : "已确认，变更已写入本地任务。");
   }
   return <section className="grid gap-4"><Card padding="sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="type-h2 text-primary">{en ? "Planning profile" : "学习规划资料"}</h2><p className="type-small mt-2 text-secondary">{en ? "Describe your goal, capacity and shifts. Your manual tasks stay under your control." : "记录目标、可用时间和排班；手动任务始终由你控制。"}</p></div><Button size="sm" variant="secondary" onClick={save}>{en ? "Save profile" : "保存资料"}</Button></div>
     <div className="mt-5 grid gap-4 tablet:grid-cols-2"><Field label={en ? "Goal / exam" : "目标 / 考试"}><input className={fieldClass} value={profile.goal} maxLength={160} onChange={(event) => setProfile({ ...profile, goal: event.target.value })} /></Field><Field label={en ? "Exam date" : "考试日期"}><input type="date" className={fieldClass} value={profile.examDate ?? ""} onChange={(event) => setProfile({ ...profile, examDate: event.target.value || undefined })} /></Field><Field label={en ? "Default daily minutes" : "默认每日可学分钟"}><input type="number" min={0} max={960} className={fieldClass} value={profile.dailyMinutes} onChange={(event) => setProfile({ ...profile, dailyMinutes: Number(event.target.value) })} /></Field><Field label={en ? "Weekly goal minutes" : "每周目标分钟"}><input type="number" min={0} max={6720} className={fieldClass} value={profile.weeklyGoalMinutes} onChange={(event) => setProfile({ ...profile, weeklyGoalMinutes: Number(event.target.value) })} /></Field><Field label={en ? "Work hours / shift notes" : "固定工作时间 / 排班说明"}><input className={fieldClass} value={profile.workHours} maxLength={160} onChange={(event) => setProfile({ ...profile, workHours: event.target.value })} /></Field><Field label={en ? "Sleep hours" : "睡眠时间"}><input className={fieldClass} value={profile.sleepHours} maxLength={80} onChange={(event) => setProfile({ ...profile, sleepHours: event.target.value })} /></Field><Field label={en ? "Rest preferences" : "希望休息时间"}><input className={fieldClass} value={profile.restPreferences} maxLength={160} onChange={(event) => setProfile({ ...profile, restPreferences: event.target.value })} /></Field><Field label={en ? "Weak subjects" : "薄弱科目"}><select multiple className={`${fieldClass} min-h-28`} value={profile.weakSubjectIds} onChange={(event) => setProfile({ ...profile, weakSubjectIds: Array.from(event.target.selectedOptions, (option) => option.value) })}>{state.subjects.map((subject) => <option key={subject.id} value={subject.id}>{en ? subject.nameEn : subject.name}</option>)}</select></Field></div>

@@ -114,14 +114,16 @@ const practice: Record<string, [stem: string, options: string[], answer: number,
 
 export function createCoreQuestions(): BetaQuestion[] {
   const now = new Date().toISOString();
-  return Object.entries(practice).map(([chapterId, [stem, options, answer, explanation]]) => ({
+  const chapterQuestions: BetaQuestion[] = Object.entries(practice).map(([chapterId, [stem, options, answer, explanation]]) => ({
     id: `system-question-${chapterId}-1`, ownerId: "local-owner", createdAt: now, updatedAt: now,
     subjectId: chapterId.startsWith("psych-") ? "subject-psychology-312" : "subject-politics", chapterId,
     knowledgePointId: legacyIds[`${chapterId}:${chapters[chapterId][0][0]}`] ?? `system-${chapterId}-${chapters[chapterId][0][0]}`,
-    examType: "system-practice", questionType: "single", stem,
+    examType: "system-practice", questionType: "single" as const, stem,
     options: options.map((text, index) => ({ id: String(index), text })), answer: [String(answer)], explanation,
-    difficulty: "easy", source: "Personal Learning OS 系统原创练习题", tags: ["系统练习题"],
+    difficulty: "easy", source: "Personal Learning OS 系统原创练习题", sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags: ["系统练习题"],
   }));
+  const points=createCoreKnowledgePoints();const pointQuestions: BetaQuestion[] = points.map((point)=>{const siblings=points.filter((item)=>item.chapterId===point.chapterId&&item.id!==point.id);const distractor=siblings[0]?.coreConcept??"该概念只适用于所有情境且没有边界条件。";return{id:`system-question-${point.id}`,ownerId:"local-owner",createdAt:now,updatedAt:now,subjectId:point.subjectId,chapterId:point.chapterId,knowledgePointId:point.id,examType:"system-practice",questionType:"single" as const,stem:`关于“${point.title}”，下列哪项表述更准确？`,options:[{id:"0",text:point.coreConcept},{id:"1",text:point.pitfalls},{id:"2",text:distractor},{id:"3",text:"仅凭术语名称即可确定所有具体结论。"}],answer:["0"],explanation:`${point.explanation??point.coreConcept} 需要同时注意：${point.pitfalls}`,difficulty: point.importance === 5 ? "medium" : "easy",source:"Personal Learning OS 系统原创练习题",sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags:["系统练习题",point.title]};});
+  return [...chapterQuestions,...pointQuestions];
 }
 
 const writtenPractice: Record<string, [prompt: string, approach: string, keywords: string[], reference: string]> = {

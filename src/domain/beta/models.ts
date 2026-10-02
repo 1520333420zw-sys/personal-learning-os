@@ -40,6 +40,9 @@ export type ReviewKind = "knowledge" | "question" | "vocabulary" | "recitation";
 export interface BetaReviewItem extends BetaEntity {
   kind: ReviewKind; targetId: BetaId; title: string; dueDate: string;
   status: "due" | "completed" | "mastered"; completedAt?: string;
+  subjectId?: BetaId; chapterId?: BetaId; lastReviewedAt?: string; reviewCount?: number;
+  ease?: number; difficulty?: number; intervalDays?: number;
+  source?: "manual" | "vocabulary" | "recitation" | "mistake" | "knowledge" | "attempt";
 }
 export type BetaQuestionType = "single" | "multiple" | "true_false";
 export interface BetaQuestion extends BetaEntity {
@@ -47,7 +50,9 @@ export interface BetaQuestion extends BetaEntity {
   questionType: BetaQuestionType; stem: string; options: { id: string; text: string }[];
   answer: string[]; explanation: string; difficulty: "easy" | "medium" | "hard";
   source: string; tags: string[];
+  sourceType?: "system" | "official" | "user" | "imported"; sourceLabel?: string; year?: number; isOfficial?: boolean;
 }
+export interface ContentPackManifest { packId:string; version:string; locale:string; subject:string; publishedAt:string; checksum:string; }
 export interface BetaQuestionAttempt extends BetaEntity { questionId: BetaId; answer: string[]; correct: boolean; attemptedAt: string; }
 export interface BetaWrongQuestion extends BetaEntity { questionId: BetaId; mastered: boolean; lastAttemptAt: string; }
 export interface BetaFavorite extends BetaEntity {
@@ -137,6 +142,7 @@ export interface BetaState {
   finance: BetaFinanceEntry[]; goals: BetaGoal[]; pomodoroRuntime?: BetaPomodoroRuntime;
   planningProfile?: PlanningProfile;
   contentPacks?: Record<string, string>;
+  contentPackManifests?: ContentPackManifest[];
   cloudSync: BetaCloudSyncState;
   externalWriteReceipts: { id: string; type: string; entityIds: string[]; importedAt: string; revertedAt?: string }[];
 }

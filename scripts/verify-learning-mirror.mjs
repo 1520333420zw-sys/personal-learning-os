@@ -20,6 +20,7 @@ const browser = load("src/data/browser/learning-mirror-sync.ts", {
 const server = load("src/data/server/learning-mirror-store.ts", {
   "@opennextjs/cloudflare": { getCloudflareContext: async () => ({ env: {} }) },
 });
+const planningStore = load("src/data/server/planning-context-store.ts");
 
 const subject = { id: "subject-psychology-312", name: "312 心理学", nameEn: "312 Psychology" };
 const chapter = { id: "psych-general", subjectId: subject.id, title: "普通心理学", titleEn: "General Psychology" };
@@ -63,6 +64,15 @@ assert.equal(server.learningReadConfigured({ EXTERNAL_INBOX_DB: db, EXTERNAL_REA
 assert.equal(server.learningReadConfigured({ EXTERNAL_INBOX_DB: db, EXTERNAL_READ_TOKEN: "s".repeat(32), EXTERNAL_SYNC_TOKEN: "s".repeat(32) }), false);
 assert.equal(server.learningReadConfigured({ EXTERNAL_INBOX_DB: db, EXTERNAL_READ_TOKEN: "w".repeat(32), EXTERNAL_WRITE_TOKEN: "w".repeat(32) }), false);
 
+const planningDb = { prepare(sql) { const statement = { sql, args: [], bind(...args) { this.args = args; return this; }, async first() {
+  return sql.startsWith("SELECT context_json") ? { context_json: JSON.stringify({ dataSufficient: true, weakKnowledgePoints: [{ id: "kp-1" }] }), updated_at: "2026-10-02T00:00:00.000Z" } : null;
+}, async run() { statements.push({ sql, args: this.args }); } }; return statement; } };
+await planningStore.savePlanningContext(planningDb, "local-owner", { dataSufficient: true, weakKnowledgePoints: [{ id: "kp-1" }] });
+const planningContext = await planningStore.getPlanningContext(planningDb, "local-owner");
+assert.equal(planningContext.dataSufficient, true);
+assert.equal(planningContext.weakKnowledgePoints[0].id, "kp-1");
+
 const migration = fs.readFileSync("migrations/0002_learning_read_mirror.sql", "utf8");
 for (const table of ["study_session_mirror", "learning_task_mirror", "learning_mirror_tombstone"]) assert.match(migration, new RegExp(`CREATE TABLE IF NOT EXISTS ${table}`));
-console.log("Learning mirror projection, validation, deletion ledger, D1 upserts, read summary and token separation: passed");
+assert.match(fs.readFileSync("migrations/0004_planning_context_mirror.sql", "utf8"), /CREATE TABLE IF NOT EXISTS planning_context_mirror/);
+console.log("Learning mirror projection, planning context, validation, deletion ledger, D1 upserts, read summary and token separation: passed");
