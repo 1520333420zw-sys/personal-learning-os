@@ -13,6 +13,7 @@ export interface LearningMirrorEnvironment {
   EXTERNAL_READ_TOKEN?: string;
   EXTERNAL_SYNC_TOKEN?: string;
   EXTERNAL_WRITE_TOKEN?: string;
+  GPT_ACTION_TOKEN?: string;
 }
 
 export async function learningMirrorEnvironment(): Promise<LearningMirrorEnvironment> {

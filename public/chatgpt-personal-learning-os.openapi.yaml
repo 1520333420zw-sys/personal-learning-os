@@ -1,0 +1,262 @@
+openapi: 3.1.0
+info:
+  title: Personal Learning OS GPT gateway
+  version: 1.0.0
+  description: >-
+    Read the owner's synchronized learning mirror and queue validated learning actions for
+    browser import. Writes remain pending until the owner browser imports them. One dedicated
+    gateway credential is used because GPT Builder applies one authentication setting to this Action.
+servers:
+  - url: https://personal-learning-os.1520333420zw.workers.dev
+security:
+  - gptActionToken: []
+paths:
+  /api/external-writes/catalog:
+    get:
+      operationId: listLearningCatalog
+      summary: Get valid subject, chapter and question IDs before writing.
+      responses:
+        '200':
+          description: Built-in catalog IDs and labels.
+  /api/external-writes:
+    post:
+      operationId: queueLearningWrite
+      summary: Queue one structured learning record for owner review and browser import.
+      description: >-
+        Create one action per request. Reuse the same Idempotency-Key when retrying the
+        same action. Use a new random UUID for a different action. Dates are YYYY-MM-DD
+        in the user's local timezone. Never invent a questionId, source, URL or duration.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 16
+            maxLength: 128
+          description: Stable random UUID for this exact action; reuse on retry.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [type]
+              description: >-
+                One learning write. Required fields depend on type: study_session requires
+                date, durationMinutes and sessionType; task requires title, date,
+                plannedMinutes and priority; recitation requires title and content; reading
+                requires title; wrong_question requires questionId. The server validates the
+                selected operation and rejects missing, extra or incompatible fields.
+              properties:
+                type:
+                  type: string
+                  enum: [study_session, task, recitation, reading, wrong_question]
+                  description: Selects the learning write operation and its required fields.
+                date:
+                  type: string
+                  format: date
+                  description: Required for study_session and task. User-local date in YYYY-MM-DD format.
+                durationMinutes:
+                  type: integer
+                  minimum: 0
+                  maximum: 480
+                  description: Required for study_session. Use 0 only when itemCount or incorrectCount records meaningful work.
+                subjectId:
+                  type: string
+                  description: Optional catalog subject ID. Call listLearningCatalog rather than inventing an ID.
+                chapterId:
+                  type: string
+                  description: Optional catalog chapter ID. Call listLearningCatalog rather than inventing an ID.
+                sessionType:
+                  type: string
+                  enum: [learning, review, practice, recitation, reading]
+                  description: Required for study_session.
+                itemCount:
+                  type: integer
+                  minimum: 1
+                  maximum: 10000
+                  description: Optional number of studied or recited items for study_session.
+                incorrectCount:
+                  type: integer
+                  minimum: 1
+                  maximum: 10000
+                  description: Optional wrong-answer count for study_session.
+                title:
+                  type: string
+                  maxLength: 300
+                  description: Required for task, recitation and reading. Task and recitation titles are limited to 200 characters.
+                plannedMinutes:
+                  type: integer
+                  minimum: 5
+                  maximum: 480
+                  description: Required for task.
+                priority:
+                  type: string
+                  enum: [low, medium, high]
+                  description: Required for task.
+                description:
+                  type: string
+                  maxLength: 2000
+                  description: Optional task description.
+                content:
+                  type: string
+                  maxLength: 5000
+                  description: Required for recitation.
+                category:
+                  type: string
+                  maxLength: 120
+                  description: Optional category for recitation or reading.
+                nextReviewAt:
+                  type: string
+                  format: date
+                  description: Optional next review date for recitation.
+                source:
+                  type: string
+                  maxLength: 200
+                  description: Optional reading source. Never invent a source.
+                url:
+                  type: string
+                  format: uri
+                  description: Optional original reading URL. Never invent a URL.
+                publishedDate:
+                  type: string
+                  format: date
+                  description: Optional reading publication date.
+                notes:
+                  type: string
+                  maxLength: 5000
+                  description: Optional reading notes written by the user.
+                summary:
+                  type: string
+                  maxLength: 5000
+                  description: Optional reading summary written by the user.
+                questionId:
+                  type: string
+                  description: Required for wrong_question. Use an ID returned by listLearningCatalog.
+      responses:
+        '201':
+          description: Queued in D1; not yet imported into the owner's browser.
+        '200':
+          description: Same idempotency key and identical action already queued.
+        '401':
+          description: Missing or invalid write token.
+        '409':
+          description: Idempotency key was reused with different data.
+        '422':
+          description: Invalid or unsupported action.
+        '503':
+          description: D1 or secrets are not configured.
+  /api/external-writes/{id}:
+    delete:
+      operationId: revokeLearningWrite
+      summary: Cancel a queued action, or request local rollback if already imported.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Returns cancelled or revoke_requested status. Imported browser data requires owner confirmation to undo.
+  /api/gpt-learning-data/summary:
+    get:
+      operationId: getLearningSummary
+      summary: Get study totals and subject breakdown for a local-date range.
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: First user-local date, inclusive.
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          description: Last user-local date, inclusive. The range cannot exceed 366 days.
+          schema:
+            type: string
+            format: date
+        - name: subjectId
+          in: query
+          required: false
+          description: Optional exact subject ID when the user asks about one subject.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Total minutes, session count and per-subject aggregates.
+        '400':
+          description: Invalid date range or subject ID.
+        '401':
+          description: Missing or invalid read token.
+        '503':
+          description: Read mirror or read secret is not configured.
+  /api/gpt-learning-data/recent:
+    get:
+      operationId: listRecentStudySessions
+      summary: List the owner's most recent completed study sessions.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: subjectId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Recent sessions with dates, subjects, chapters, types, minutes and optional item counts.
+        '401':
+          description: Missing or invalid read token.
+        '503':
+          description: Read mirror or read secret is not configured.
+  /api/gpt-learning-data/tasks:
+    get:
+      operationId: listLearningTasks
+      summary: List learning tasks in a local-date range for grounded planning assistance.
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [todo, in_progress, completed]
+      responses:
+        '200':
+          description: Tasks with schedule, subject, chapter, planned and actual minutes, priority and status.
+        '400':
+          description: Invalid date range or status.
+        '401':
+          description: Missing or invalid read token.
+        '503':
+          description: Read mirror or read secret is not configured.
+components:
+  securitySchemes:
+    gptActionToken:
+      type: http
+      scheme: bearer
+      description: Dedicated GPT gateway credential. Never place this secret in instructions or schema text.
+

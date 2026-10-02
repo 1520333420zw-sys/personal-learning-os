@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authorized } from "@/data/server/external-write-store";
+import { authorizedForGptAction } from "@/data/server/external-write-store";
 import { learningMirrorEnvironment, learningReadConfigured } from "@/data/server/learning-mirror-store";
 
 export const ownerId = "local-owner";
@@ -21,6 +21,6 @@ export function validRange(from: string, to: string): boolean {
 export async function authorizeLearningRead(request: Request) {
   const env = await learningMirrorEnvironment();
   if (!learningReadConfigured(env)) return { response: json({ error: "learning_read_not_configured" }, 503) };
-  if (!await authorized(request.headers.get("authorization"), env.EXTERNAL_READ_TOKEN)) return { response: json({ error: "unauthorized" }, 401) };
+  if (!await authorizedForGptAction(request.headers.get("authorization"), env.EXTERNAL_READ_TOKEN, env)) return { response: json({ error: "unauthorized" }, 401) };
   return { env };
 }

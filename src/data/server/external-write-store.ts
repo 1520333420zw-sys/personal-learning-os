@@ -8,10 +8,12 @@ interface Statement {
   run(): Promise<unknown>;
 }
 interface Database { prepare(query: string): Statement; }
-interface Environment {
+export interface Environment {
   EXTERNAL_INBOX_DB?: Database;
   EXTERNAL_WRITE_TOKEN?: string;
   EXTERNAL_SYNC_TOKEN?: string;
+  EXTERNAL_READ_TOKEN?: string;
+  GPT_ACTION_TOKEN?: string;
 }
 interface Row {
   seq: number; id: string; idempotency_key: string; content_hash: string; owner_id: string;
@@ -41,6 +43,25 @@ export async function authorized(header: string | null, expected: string | undef
   let mismatch = 0;
   for (let index = 0; index < left.length; index++) mismatch |= left[index] ^ right[index];
   return mismatch === 0;
+}
+
+type ActionTokenEnvironment = Pick<Environment, "GPT_ACTION_TOKEN" | "EXTERNAL_WRITE_TOKEN" | "EXTERNAL_SYNC_TOKEN" | "EXTERNAL_READ_TOKEN">;
+
+export function gptActionConfigured(env: ActionTokenEnvironment): boolean {
+  const token = env.GPT_ACTION_TOKEN;
+  return Boolean(token && token.length >= 32 &&
+    [env.EXTERNAL_WRITE_TOKEN, env.EXTERNAL_SYNC_TOKEN, env.EXTERNAL_READ_TOKEN]
+      .every((scopedToken) => !scopedToken || scopedToken !== token));
+}
+
+/** Accepts the existing scoped credential or the dedicated, distinct GPT gateway credential. */
+export async function authorizedForGptAction(
+  header: string | null,
+  scopedToken: string | undefined,
+  env: ActionTokenEnvironment,
+): Promise<boolean> {
+  if (await authorized(header, scopedToken)) return true;
+  return gptActionConfigured(env) && authorized(header, env.GPT_ACTION_TOKEN);
 }
 
 function base64Url(bytes: Uint8Array): string {

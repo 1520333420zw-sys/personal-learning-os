@@ -96,12 +96,28 @@ assert.equal((await repository.changeExternalWriteStatus(db, "local-owner", firs
 assert.equal((await repository.listExternalWrites(db, "local-owner", 0)).items.length, 0);
 assert.equal(await repository.authorized("Bearer same-secret-123456789012345678901234", "same-secret-123456789012345678901234"), true);
 assert.equal(await repository.authorized("Bearer different-secret-1234567890123456789", "same-secret-123456789012345678901234"), false);
+const gatewayEnv = { GPT_ACTION_TOKEN: "g".repeat(32), EXTERNAL_WRITE_TOKEN: "w".repeat(32), EXTERNAL_READ_TOKEN: "r".repeat(32), EXTERNAL_SYNC_TOKEN: "s".repeat(32) };
+assert.equal(repository.gptActionConfigured(gatewayEnv), true);
+assert.equal(await repository.authorizedForGptAction(`Bearer ${"g".repeat(32)}`, gatewayEnv.EXTERNAL_WRITE_TOKEN, gatewayEnv), true);
+assert.equal(await repository.authorizedForGptAction(`Bearer ${"w".repeat(32)}`, gatewayEnv.EXTERNAL_WRITE_TOKEN, gatewayEnv), true);
+assert.equal(await repository.authorizedForGptAction(`Bearer ${"r".repeat(32)}`, gatewayEnv.EXTERNAL_WRITE_TOKEN, gatewayEnv), false);
+assert.equal(repository.gptActionConfigured({ ...gatewayEnv, GPT_ACTION_TOKEN: gatewayEnv.EXTERNAL_SYNC_TOKEN }), false);
 const syncSecret = "browser-sync-secret-12345678901234567890";
 const session = await repository.createSyncSession(syncSecret);
 assert.equal(await repository.validSyncSession(session, syncSecret), true);
 assert.equal(await repository.validSyncSession(`${session}x`, syncSecret), false);
 assert.equal(await repository.syncAuthorized(new Request("https://example.com/api", { headers: { cookie: `${repository.EXTERNAL_SYNC_COOKIE}=${session}` } }), syncSecret), true);
 assert.match(repository.syncSessionCookie(session), /HttpOnly; Secure; SameSite=Strict/);
+
+const unifiedSchema = fs.readFileSync("public/chatgpt-personal-learning-os.openapi.yaml", "utf8");
+for (const operationId of ["listLearningCatalog", "queueLearningWrite", "revokeLearningWrite", "getLearningSummary", "listRecentStudySessions", "listLearningTasks"]) {
+  assert.match(unifiedSchema, new RegExp(`operationId: ${operationId}`));
+}
+assert.equal((unifiedSchema.match(/^  operationId:/gm) ?? []).length, 0);
+assert.equal((unifiedSchema.match(/operationId:/g) ?? []).length, 6);
+assert.match(unifiedSchema, /requestBody:\s+[\s\S]*?schema:\s+type: object/);
+assert.doesNotMatch(unifiedSchema, /schemas:/);
+assert.doesNotMatch(unifiedSchema, /oneOf:|anyOf:/);
 
 const autoState = store.createInitialBetaState();
 const autoReceipt = { id: "10000000-0000-4000-8000-000000000000", command: cases[0], status: "pending", createdAt: "2026-09-18T00:00:00Z" };

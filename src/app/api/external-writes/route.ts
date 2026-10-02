@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { parseExternalWrite } from "@/domain/external-writes/command";
-import { authorized, configured, createExternalWrite, externalWriteEnvironment, listExternalWrites, syncAuthorized } from "@/data/server/external-write-store";
+import { authorizedForGptAction, configured, createExternalWrite, externalWriteEnvironment, listExternalWrites, syncAuthorized } from "@/data/server/external-write-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ const json = (value: unknown, status = 200) => NextResponse.json(value, { status
 export async function POST(request: Request) {
   const env = await externalWriteEnvironment();
   if (!configured(env)) return json({ error: "external_write_not_configured" }, 503);
-  if (!await authorized(request.headers.get("authorization"), env.EXTERNAL_WRITE_TOKEN)) return json({ error: "unauthorized" }, 401);
+  if (!await authorizedForGptAction(request.headers.get("authorization"), env.EXTERNAL_WRITE_TOKEN, env)) return json({ error: "unauthorized" }, 401);
   const key = request.headers.get("idempotency-key");
   if (!key || !/^[A-Za-z0-9_-]{16,128}$/.test(key)) return json({ error: "invalid_idempotency_key" }, 400);
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) return json({ error: "json_required" }, 415);
