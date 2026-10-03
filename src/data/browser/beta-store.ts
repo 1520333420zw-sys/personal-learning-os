@@ -134,8 +134,9 @@ export function createInitialBetaState(): BetaState {
     reviewCount: 0, mastery: "new" as const,
   }));
   return {
-    version: 5, ownerId: LOCAL_OWNER_ID, subjects, chapters, units: createOutlineUnits(), knowledgePoints: allKnowledgePoints,
+    version: 6, ownerId: LOCAL_OWNER_ID, subjects, chapters, units: createOutlineUnits(), knowledgePoints: allKnowledgePoints,
     tasks: [], studySessions: [], pomodoroSessions: [], studyProgress: [], reviewItems: [], questions: [...questions, ...createCoreQuestions(), ...universal.questions], questionAttempts: [], wrongQuestions: [],
+    courseProgress: [], chapterProgress: [], sectionProgress: [], feynmanAttempts: [],
     favorites: [], vocabulary: [], reading: [], readingNotes: [], recitations: initialRecitations, notes: [], books: [],
     englishContent: createEnglishSystemContent(), subjectiveQuestions: createCoreSubjectiveQuestions(), currentAffairs: [], pdfDocuments: [], pdfNotes: [], resources: [],
     habits: [], exercises: [], sleep: [], finance: [], goals: [],
@@ -192,10 +193,10 @@ export function saveBetaState(state: BetaState): void {
   window.localStorage.setItem(BETA_STORAGE_KEY, serializeBetaState(state));
 }
 
-export function isBetaState(value: unknown): value is BetaState | (Omit<BetaState, "version" | "units" | "englishContent" | "subjectiveQuestions" | "currentAffairs" | "pdfDocuments" | "pdfNotes" | "externalWriteReceipts" | "cloudSync"> & { version: 1 | 2 | 3 | 4 }) {
+export function isBetaState(value: unknown): value is BetaState | (Omit<BetaState, "version" | "units" | "englishContent" | "subjectiveQuestions" | "currentAffairs" | "pdfDocuments" | "pdfNotes" | "externalWriteReceipts" | "cloudSync" | "courseProgress" | "chapterProgress" | "sectionProgress" | "feynmanAttempts"> & { version: 1 | 2 | 3 | 4 | 5 }) {
   if (!value || typeof value !== "object") return false;
   const candidate = value as { version?: number; ownerId?: unknown; subjects?: unknown; tasks?: unknown; studySessions?: unknown; notes?: unknown };
-  return (candidate.version === 1 || candidate.version === 2 || candidate.version === 3 || candidate.version === 4 || candidate.version === 5) && typeof candidate.ownerId === "string" &&
+  return (candidate.version === 1 || candidate.version === 2 || candidate.version === 3 || candidate.version === 4 || candidate.version === 5 || candidate.version === 6) && typeof candidate.ownerId === "string" &&
     Array.isArray(candidate.subjects) && Array.isArray(candidate.tasks) &&
     Array.isArray(candidate.studySessions) && Array.isArray(candidate.notes);
 }
@@ -221,7 +222,7 @@ export function migrateBetaState(value: unknown): BetaState {
       updatedAt: overlay?.updatedAt ?? saved?.updatedAt ?? point.updatedAt };
   });
   return {
-    ...initial, ...prior, version: 5,
+    ...initial, ...prior, version: 6,
     subjects: mergeCatalog(prior.subjects, initial.subjects),
     chapters: mergeCatalog(prior.chapters, initial.chapters),
     units: mergeCatalog(prior.units, initial.units),
@@ -252,6 +253,8 @@ export function migrateBetaState(value: unknown): BetaState {
     }), currentAffairs: prior.currentAffairs ?? [],
     pdfDocuments: prior.pdfDocuments ?? [], pdfNotes: prior.pdfNotes ?? [],
     pomodoroSessions: prior.pomodoroSessions ?? [], studyProgress: prior.studyProgress ?? [],
+    courseProgress: prior.courseProgress ?? [], chapterProgress: prior.chapterProgress ?? [],
+    sectionProgress: prior.sectionProgress ?? [], feynmanAttempts: prior.feynmanAttempts ?? [],
     readingNotes: prior.readingNotes ?? [],
     externalWriteReceipts: Array.isArray(prior.externalWriteReceipts) ? prior.externalWriteReceipts : [],
     cloudSync: { deletions: Array.isArray(prior.cloudSync?.deletions) ? prior.cloudSync.deletions : [] },

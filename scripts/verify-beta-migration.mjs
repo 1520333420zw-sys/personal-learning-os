@@ -31,7 +31,11 @@ previous.knowledgePoints[0].personalNote = "Keep my note";
 previous.contentVocabularyState = { "en-vocab-system": { familiarity: "vague", favorite: true, reviewCount: 2, updatedAt: "2026-10-03T00:00:00.000Z" } };
 previous.contentPackManifests = previous.contentPackManifests.map((item) => item.packId === "core-psychology" ? { ...item, version: "old" } : item);
 const migrated = migrateBetaState(previous);
-assert.equal(migrated.version, 5);
+assert.equal(migrated.version, 6);
+assert.deepEqual(migrated.courseProgress, []);
+assert.deepEqual(migrated.chapterProgress, []);
+assert.deepEqual(migrated.sectionProgress, []);
+assert.deepEqual(migrated.feynmanAttempts, []);
 assert.deepEqual(migrated.cloudSync, { deletions: [] });
 assert.deepEqual(migrated.externalWriteReceipts, []);
 assert.equal(migrated.tasks.find((item) => item.id === "kept-task")?.title, "Keep my task");
@@ -90,7 +94,7 @@ assert.equal(applied[1].id, "confirmed-task");
 assert.equal(applied[1].sourceType, "ai");
 assert.equal(planContext.tasks.length, 1, "Confirmed application must not mutate the preview context");
 assert.throws(() => migrateBetaState({ version: 2, ownerId: "x" }));
-console.log("Beta v1 → v5 migration, content packs, system exam points and AI plan guardrails: passed");
+console.log("Beta v1 → v6 migration, content packs, learning progress overlays, system exam points and AI plan guardrails: passed");
 for (const subjectId of ["subject-psychology-312", "subject-politics"]) {
   console.log(`${subjectId}: ${restored.chapters.filter((chapter) => chapter.subjectId === subjectId).length} modules, ${restored.units.filter((unit) => unit.subjectId === subjectId).length} outline units, ${restored.knowledgePoints.filter((point) => point.subjectId === subjectId).length} learning points`);
 }

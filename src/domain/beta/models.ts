@@ -43,6 +43,27 @@ export interface BetaStudyProgress extends BetaEntity {
   targetType: "subject" | "chapter" | "knowledge"; targetId: BetaId;
   status: Mastery; percent: number;
 }
+export interface BetaCourseProgress extends BetaEntity {
+  curriculumId: BetaId; lastChapterId?: BetaId; lastSectionId?: BetaId;
+  startedAt: string; lastStudiedAt: string;
+}
+export interface BetaChapterProgress extends BetaEntity {
+  curriculumId: BetaId; chapterId: BetaId; completedSectionIds: BetaId[];
+  chapterPracticeCompleted: boolean; recitationCompleted: boolean; reviewScheduled: boolean;
+  completedAt?: string; lastStudiedAt: string;
+}
+export interface BetaSectionProgress extends BetaEntity {
+  curriculumId: BetaId; chapterId: BetaId; sectionId: BetaId;
+  status: "not_started" | "learning" | "completed";
+  lessonViewed: boolean; feynmanStatus: "pending" | "completed" | "skipped";
+  quickCheckCompleted: boolean; quickCheckCorrect: number; quickCheckTotal: number;
+  startedAt: string; completedAt?: string; lastStudiedAt: string;
+}
+export interface BetaFeynmanAttempt extends BetaEntity {
+  sectionId: BetaId; knowledgePointIds: BetaId[]; response: string;
+  selfRating: "again" | "hard" | "good" | "easy"; feedback: string;
+  retryCount: number; matchedTerms: string[]; missingTerms: string[];
+}
 export type ReviewKind = "knowledge" | "question" | "vocabulary" | "recitation";
 export interface BetaReviewItem extends BetaEntity {
   kind: ReviewKind; targetId: BetaId; title: string; dueDate: string;
@@ -141,9 +162,11 @@ export interface BetaPomodoroRuntime {
 export interface BetaSyncDeletion { collection: string; id: BetaId; deletedAt: string; }
 export interface BetaCloudSyncState { deletions: BetaSyncDeletion[]; }
 export interface BetaState {
-  version: 5; ownerId: OwnerId; subjects: BetaSubject[]; chapters: BetaChapter[]; units: BetaUnit[];
+  version: 6; ownerId: OwnerId; subjects: BetaSubject[]; chapters: BetaChapter[]; units: BetaUnit[];
   knowledgePoints: BetaKnowledgePoint[]; tasks: BetaTask[]; studySessions: BetaStudySession[];
   pomodoroSessions: BetaPomodoroSession[]; studyProgress: BetaStudyProgress[];
+  courseProgress: BetaCourseProgress[]; chapterProgress: BetaChapterProgress[];
+  sectionProgress: BetaSectionProgress[]; feynmanAttempts: BetaFeynmanAttempt[];
   reviewItems: BetaReviewItem[]; questions: BetaQuestion[]; questionAttempts: BetaQuestionAttempt[];
   wrongQuestions: BetaWrongQuestion[]; favorites: BetaFavorite[]; vocabulary: BetaVocabulary[];
   reading: BetaReading[]; readingNotes: BetaReadingNote[]; recitations: BetaRecitation[]; notes: BetaNote[]; books: BetaBook[];

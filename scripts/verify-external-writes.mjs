@@ -30,7 +30,7 @@ const previous = { ...state, version: 3 };
 delete previous.externalWriteReceipts;
 previous.tasks.push({ id: "old-task", ownerId: "local-owner", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", title: "Keep", description: "", date: "2026-01-01", plannedMinutes: 25, actualMinutes: 0, priority: "medium", status: "todo", sourceType: "manual" });
 state = store.migrateBetaState(previous);
-assert.equal(state.version, 5);
+assert.equal(state.version, 6);
 assert.deepEqual(state.externalWriteReceipts, []);
 
 const cases = [

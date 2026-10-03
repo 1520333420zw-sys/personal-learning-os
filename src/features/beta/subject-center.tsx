@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Badge, Button, Card } from "@/components/ui";
 import type { Mastery } from "@/domain/beta";
 import type { Locale } from "@/i18n/config";
@@ -35,7 +36,7 @@ export function SubjectCenter({ locale, slug }: { locale: Locale; slug: "psychol
   function updatePoint(field: "personalNote" | "mastery" | "favorite", value: string | boolean) { if (!selected) return; mutate((draft) => { const point = draft.knowledgePoints.find((p) => p.id === selected.id); if (!point) return; if (field === "favorite") point.favorite = Boolean(value); else if (field === "mastery") point.mastery = value as Mastery; else point.personalNote = String(value); point.lastStudiedAt = new Date().toISOString(); point.updatedAt = new Date().toISOString(); if (field === "mastery") { const percent = { new: 0, learning: 35, reviewing: 70, mastered: 100 }[value as Mastery]; const existing = draft.studyProgress.find((p) => p.targetType === "knowledge" && p.targetId === point.id); if (existing) { existing.status = value as Mastery; existing.percent = percent; existing.updatedAt = point.updatedAt; } else draft.studyProgress.push({ ...nowEntity(uid("progress"), draft.ownerId), targetType: "knowledge", targetId: point.id, status: value as Mastery, percent }); } if (field === "mastery" && value === "reviewing" && !draft.reviewItems.some((r) => r.kind === "knowledge" && r.targetId === point.id && r.status === "due")) draft.reviewItems.push({ ...nowEntity(uid("review"), draft.ownerId), kind: "knowledge", targetId: point.id, title: point.title, dueDate: localDate(), status: "due" }); }); }
   function createLinkedNote() { if (!selected) return; mutate((draft) => { if (!draft.notes.some((note) => note.linkedType === "knowledge" && note.linkedId === selected.id)) draft.notes.push({ ...nowEntity(uid("note"), draft.ownerId), title: locale === "en" ? selected.titleEn : selected.title, content: selected.personalNote, tags: [slug], subjectId: subject.id, linkedType: "knowledge", linkedId: selected.id, favorite: false }); }); }
 
-  return <BetaPage title={title} description={`${m.subjectCenter.learn} · ${chapters.length} ${m.subjectCenter.areas} · ${state.units.filter((unit) => unit.subjectId === subject.id).length} ${m.chapter} · ${masteredPoints} / ${points.length} ${m.subjectCenter.savedPoints} ${m.subjectCenter.mastered}`}>
+  return <BetaPage title={title} description={`${m.subjectCenter.learn} · ${chapters.length} ${m.subjectCenter.areas} · ${state.units.filter((unit) => unit.subjectId === subject.id).length} ${m.chapter} · ${masteredPoints} / ${points.length} ${m.subjectCenter.savedPoints} ${m.subjectCenter.mastered}`} action={<Link href={`/${locale}/learn/curriculum-${slug}`} className="inline-flex min-h-11 items-center rounded-md border border-accent bg-accent px-4 type-label text-white hover:bg-accent-hover">{locale === "en" ? "Study in course order" : "按课程顺序学习"} →</Link>}>
     <SubjectStudySummary locale={locale} subjectId={subject.id}/>
     <Tabs label={m.subjectCenter.learn} items={tabs} value={tab} onChange={(id) => setTab(id as CenterTab)} />
     {tab === "learn" ? <div className="grid gap-6 desktop:grid-cols-[18rem_minmax(0,1fr)]">
