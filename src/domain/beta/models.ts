@@ -14,6 +14,13 @@ export interface BetaKnowledgePoint extends BetaEntity {
   explanation?: string; explanationEn?: string; importance?: 1 | 2 | 3 | 4 | 5;
   relatedPointIds?: BetaId[]; contentVersion?: string;
   learningBlocks?: { kind: string; title: string; body: string }[];
+  aliases?: string[]; summary?: string; definition?: string; coreConcepts?: string[];
+  details?: string[]; examples?: string[]; comparisons?: string[]; commonMistakes?: string[];
+  examFocus?: string[]; memoryVersion?: string; shortAnswerPoints?: string[];
+  essayPoints?: string[]; formulas?: string[]; prerequisiteIds?: BetaId[]; tags?: string[];
+  difficulty?: "introductory" | "intermediate" | "advanced";
+  sourceType?: "system" | "official" | "public" | "user";
+  sourceNote?: string; contentPackVersion?: string;
 }
 export type BetaTaskStatus = "todo" | "in_progress" | "completed";
 export type BetaTaskPriority = "low" | "medium" | "high";
@@ -52,7 +59,7 @@ export interface BetaQuestion extends BetaEntity {
   source: string; tags: string[];
   sourceType?: "system" | "official" | "user" | "imported"; sourceLabel?: string; year?: number; isOfficial?: boolean;
 }
-export interface ContentPackManifest { packId:string; version:string; locale:string; subject:string; publishedAt:string; checksum:string; }
+export interface ContentPackManifest { packId:string; version:string; locale:string; subject:string; publishedAt:string; checksum:string; itemCount?:number; }
 export interface BetaQuestionAttempt extends BetaEntity { questionId: BetaId; answer: string[]; correct: boolean; attemptedAt: string; }
 export interface BetaWrongQuestion extends BetaEntity { questionId: BetaId; mastered: boolean; lastAttemptAt: string; }
 export interface BetaFavorite extends BetaEntity {
@@ -64,6 +71,10 @@ export interface BetaVocabulary extends BetaEntity {
   examType: "english1" | "english2" | "cet4" | "cet6" | "general";
   familiarity: "new" | "vague" | "known" | "mastered"; favorite: boolean;
   reviewCount: number; nextReviewAt?: string; lastReviewedAt?: string; tags?: string[];
+}
+export interface BetaVocabularyProgress {
+  familiarity: BetaVocabulary["familiarity"]; favorite: boolean; reviewCount: number;
+  nextReviewAt?: string; lastReviewedAt?: string; updatedAt: string;
 }
 export interface BetaReading extends BetaEntity {
   title: string; source: string; url: string; publishedDate: string; category: string;
@@ -143,6 +154,7 @@ export interface BetaState {
   planningProfile?: PlanningProfile;
   contentPacks?: Record<string, string>;
   contentPackManifests?: ContentPackManifest[];
+  contentVocabularyState?: Record<string, BetaVocabularyProgress>;
   cloudSync: BetaCloudSyncState;
   externalWriteReceipts: { id: string; type: string; entityIds: string[]; importedAt: string; revertedAt?: string }[];
 }

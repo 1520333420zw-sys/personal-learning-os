@@ -15,6 +15,7 @@
     "test:cloud-sync": "node scripts/verify-cloud-sync.mjs",
     "test:learning-intelligence": "node scripts/verify-learning-intelligence.mjs",
     "test:content": "node scripts/verify-content-integrity.mjs",
+    "verify-content-packs": "node scripts/verify-content-integrity.mjs",
     "preview:cloudflare": "opennextjs-cloudflare preview",
     "deploy:cloudflare": "opennextjs-cloudflare deploy"
   },

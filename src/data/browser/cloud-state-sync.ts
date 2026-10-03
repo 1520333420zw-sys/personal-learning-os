@@ -60,6 +60,12 @@ export function mergeCloudStates(localValue: unknown, remoteValue: unknown): Bet
     if(left?.revertedAt && (!right?.revertedAt||left.revertedAt>right.revertedAt))return left;return right??left??item;
   });
   if ((local.planningProfile?.updatedAt ?? "") > (remote.planningProfile?.updatedAt ?? "")) merged.planningProfile = local.planningProfile;
+  const vocabularyState = new Map(Object.entries(remote.contentVocabularyState ?? {}));
+  for (const [id, value] of Object.entries(local.contentVocabularyState ?? {})) {
+    const prior = vocabularyState.get(id);
+    if (!prior || value.updatedAt > prior.updatedAt) vocabularyState.set(id, value);
+  }
+  merged.contentVocabularyState = Object.fromEntries(vocabularyState);
   merged.pomodoroRuntime = local.pomodoroRuntime ?? remote.pomodoroRuntime;
   return migrateBetaState(merged);
 }
@@ -76,6 +82,7 @@ export function hasPersonalData(state: BetaState) {
   if (state.knowledgePoints.some((item) => item.personalNote || item.favorite || item.mastery !== "new" || item.lastStudiedAt || item.nextReviewAt)) return true;
   if (state.subjectiveQuestions.some((item) => item.ownAnswer.trim())) return true;
   if (state.recitations.some((item) => item.favorite || item.status !== "today" || (item.reviewCount ?? 0) > 0 || !item.id.startsWith("recitation-system-"))) return true;
+  if (Object.keys(state.contentVocabularyState ?? {}).length) return true;
   return Boolean(state.planningProfile || state.externalWriteReceipts.length);
 }
 export function cloudPayload(state: BetaState) { return JSON.parse(serializeBetaState(state)) as unknown; }

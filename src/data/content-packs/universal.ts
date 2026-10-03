@@ -98,11 +98,20 @@ export function createUniversalContent(): { subjects: BetaSubject[]; chapters: B
   const points: BetaKnowledgePoint[] = paths.flatMap((path) => path.topics.map(([title, titleEn, coreConcept, explanation, keyPoints, pitfalls], index) => ({
     ...base, id: `point-universal-${path.slug}-${index + 1}`, subjectId: `subject-universal-${path.slug}`,
     chapterId: `chapter-universal-${path.slug}-intro`, title, titleEn, coreConcept, explanation, keyPoints, pitfalls,
+    summary: coreConcept, definition: coreConcept, coreConcepts: [coreConcept], details: [explanation], commonMistakes: [pitfalls],
+    examFocus: [keyPoints], memoryVersion: `${coreConcept}\n${keyPoints}`, tags: [title, path.slug],
+    difficulty: index < 2 ? "introductory" as const : "intermediate" as const, sourceType: "system" as const,
+    sourceNote: "Personal Learning OS 原创入门内容；不替代专业教材。", contentPackVersion: UNIVERSAL_CONTENT_VERSION,
     learningBlocks: index === blockIndex[path.slug] ? path.blocks.map(([kind, blockTitle, body]) => ({ kind, title: blockTitle, body })) : undefined,
     importance: index === 0 ? 5 as const : 3 as const, contentVersion: UNIVERSAL_CONTENT_VERSION,
     personalNote: "", mastery: "new" as const, favorite: false,
   })));
-  for (const point of points) point.relatedPointIds = points.filter((entry) => entry.chapterId === point.chapterId && entry.id !== point.id).slice(0, 2).map((entry) => entry.id);
+  for (const point of points) {
+    const siblings = points.filter((entry) => entry.chapterId === point.chapterId);
+    const index = siblings.findIndex((entry) => entry.id === point.id);
+    point.prerequisiteIds = index > 0 ? [siblings[index - 1].id] : [];
+    point.relatedPointIds = siblings.filter((entry) => entry.id !== point.id).slice(Math.max(0, index - 1), Math.max(0, index - 1) + 2).map((entry) => entry.id);
+  }
   const questions = paths.map((path) => ({
     ...base, id: `question-universal-${path.slug}-intro`, subjectId: `subject-universal-${path.slug}`,
     chapterId: `chapter-universal-${path.slug}-intro`, knowledgePointId: `point-universal-${path.slug}-1`,

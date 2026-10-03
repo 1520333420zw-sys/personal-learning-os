@@ -19,7 +19,6 @@ export const LOCAL_OWNER_ID: OwnerId = "local-owner";
 export function createBetaId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`;
 }
-
 export function createBetaEntity(id: string, ownerId = LOCAL_OWNER_ID): BetaEntity {
   const now = new Date().toISOString();
   return { id, ownerId, createdAt: now, updatedAt: now };
@@ -139,12 +138,13 @@ export function createInitialBetaState(): BetaState {
     favorites: [], vocabulary: [], reading: [], readingNotes: [], recitations: initialRecitations, notes: [], books: [],
     englishContent: [], subjectiveQuestions: createCoreSubjectiveQuestions(), currentAffairs: [], pdfDocuments: [], pdfNotes: [], resources: [],
     habits: [], exercises: [], sleep: [], finance: [], goals: [],
-    contentPacks: { core: CORE_CONTENT_VERSION, universal: UNIVERSAL_CONTENT_VERSION },
+    contentPacks: { core: CORE_CONTENT_VERSION, universal: UNIVERSAL_CONTENT_VERSION, englishVocabulary: "2026.10-english-vocabulary-1" },
     contentPackManifests:[
       {packId:"core-psychology",version:CORE_CONTENT_VERSION,locale:"zh-CN",subject:"subject-psychology-312",publishedAt:"2026-10-02",checksum:"core-psychology-2026-10"},
       {packId:"core-politics",version:CORE_CONTENT_VERSION,locale:"zh-CN",subject:"subject-politics",publishedAt:"2026-10-02",checksum:"core-politics-2026-10"},
       {packId:"universal-foundations",version:UNIVERSAL_CONTENT_VERSION,locale:"zh-CN",subject:"universal",publishedAt:"2026-10-02",checksum:"universal-foundations-2026-10"},
-    ],cloudSync: { deletions: [] }, externalWriteReceipts: [],
+      {packId:"english-1-vocabulary",version:"2026.10-english-vocabulary-1",locale:"zh-CN",subject:"subject-english",publishedAt:"2026-10-03",checksum:"sha256:fc1fc790646c8612fb91ad744fa025727494816e29cc5c217c22b5efe4d4e5ca",itemCount:1000},
+    ],contentVocabularyState:{},cloudSync: { deletions: [] }, externalWriteReceipts: [],
   };
 }
 
@@ -255,5 +255,6 @@ export function migrateBetaState(value: unknown): BetaState {
     cloudSync: { deletions: Array.isArray(prior.cloudSync?.deletions) ? prior.cloudSync.deletions : [] },
     contentPacks: initial.contentPacks,
     contentPackManifests: [...(prior.contentPackManifests ?? []).filter((saved) => !initial.contentPackManifests?.some((current) => current.packId === saved.packId)), ...(initial.contentPackManifests ?? [])],
+    contentVocabularyState: prior.contentVocabularyState ?? {},
   };
 }

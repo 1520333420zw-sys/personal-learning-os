@@ -71,6 +71,109 @@ const chapters: Record<string, Seed[]> = {
   ],
 };
 
+const expandedChapters: Record<string, Seed[]> = {
+  "psych-general": [
+    ["neuron", "神经元与突触传递", "Neurons and synaptic transmission", "神经元通过电化学过程传递信息，突触是神经元之间信息交换的重要部位。", "动作电位沿轴突传播，到达末梢后影响神经递质释放；递质与受体结合后改变突触后细胞活动。", "区分神经冲动在神经元内的传播与突触间的化学传递。", "神经递质不能简单分成永远兴奋或永远抑制，其作用与受体和回路有关。"],
+    ["consciousness", "意识与无意识加工", "Conscious and unconscious processing", "意识是个体对内外经验的觉知状态，部分信息加工可在缺乏明确觉知时发生。", "意识研究关注觉醒水平、觉知内容和控制加工；无意识加工的证据需要排除残余觉知与反应偏差。", "比较意识内容、觉醒程度和自动加工。", "没有口头报告不等于一定没有任何意识体验。"],
+    ["signal-detection", "信号检测论", "Signal detection theory", "信号检测论把感觉判断分为辨别能力与反应标准两个方面。", "命中、漏报、虚报和正确拒斥共同反映观察者在噪声中判断信号的结果。", "区分感受性指标与判断标准，说明奖惩如何移动标准。", "命中率升高未必表示辨别能力提高，也可能伴随更多虚报。"],
+    ["perceptual-organization", "知觉组织原则", "Perceptual organization", "知觉系统会依据接近、相似、连续和闭合等线索组织感觉输入。", "图形与背景的分化使部分区域成为知觉对象，其余区域成为背景。", "用新图形识别组织线索并说明多种线索可能共同作用。", "组织原则描述倾向，不是对所有刺激都无条件成立的定律。"],
+    ["long-term-memory", "长时记忆系统", "Long-term memory systems", "长时记忆包含可有意识提取的陈述性记忆和通过表现体现的非陈述性记忆。", "情景记忆涉及个人事件，语义记忆涉及一般知识；程序性技能常通过练习和操作表现。", "比较情景、语义和程序性记忆的内容与测量方式。", "不能把记不清事件细节等同于所有长期保存都消失。"],
+    ["forgetting", "遗忘与提取失败", "Forgetting and retrieval failure", "遗忘可能来自编码不足、痕迹变化、干扰或提取线索不充分。", "前摄干扰是旧信息妨碍新信息，倒摄干扰是新信息妨碍旧信息；合适线索可改善提取。", "结合实验条件判断编码、存储和提取环节。", "提取失败不等于记忆内容已经永久删除。"],
+    ["problem-solving", "问题解决", "Problem solving", "问题解决是从初始状态通过一系列操作达到目标状态的认知活动。", "算法能系统搜索，启发式降低搜索成本；功能固着和思维定势可能限制方案。", "识别问题表征、策略选择和结果检验三个环节。", "启发式提高效率但不保证每次得到正确答案。"],
+    ["motivation", "动机与目标", "Motivation and goals", "动机激发并维持指向目标的行为，同时受需要、期待和价值判断影响。", "内在动机来自活动本身的兴趣或满足，外在动机与外部结果相联系，两者可共同存在。", "从方向、强度和持续性分析动机。", "外部奖励不必然削弱内在动机，效果取决于控制感和反馈含义。"],
+    ["emotion", "情绪的成分与调节", "Emotion and regulation", "情绪包含主观体验、生理唤醒、认知评价和表达行为等相互联系的成分。", "情绪调节可以发生在情境选择、注意分配、认知改变或反应调整等阶段。", "比较认知重评与表达抑制的作用时点。", "调节情绪不等于压抑或消除一切负性体验。"],
+    ["personality-traits", "人格特质", "Personality traits", "人格特质描述个体在多种情境中相对稳定的思维、情绪和行为倾向。", "特质模型用于概括个体差异，但具体行为仍受到情境、角色与发展阶段影响。", "区分特质水平描述与单次行为判断。", "特质分数不是固定命运，也不能替代对情境的分析。"],
+  ],
+  "psych-social": [
+    ["socialization", "社会化", "Socialization", "社会化是个体学习社会规范、角色与文化意义并形成社会能力的过程。", "家庭、同伴、学校、媒体和制度环境都可能成为社会化来源，影响在生命全程持续发生。", "比较早期社会化与成人角色再社会化。", "社会化不是个体被动接受，个体也会选择和重构经验。"],
+    ["self-concept", "自我概念与自尊", "Self-concept and self-esteem", "自我概念是个体对自身属性和角色的认知组织，自尊涉及对自我的评价。", "自我知识来自反思、社会比较和他人反馈，并随情境突出不同部分。", "区分描述性的自我概念与评价性的自尊。", "高自尊不等于在所有领域都准确评价自己。"],
+    ["cognitive-dissonance", "认知失调", "Cognitive dissonance", "认知失调是相互不一致的认知或行为造成的心理紧张。", "个体可能通过改变行为、调整态度或增加解释来降低失调。", "识别自由选择、努力合理化和不充分理由等情境。", "态度改变不是失调降低的唯一方式。"],
+    ["obedience", "服从", "Obedience", "服从是个体在权威要求下实施行为的社会影响形式。", "责任转移、权威合法性、情境距离与同伴行为会影响服从。", "区分服从、从众和一般顺从请求。", "经典实验结果不能被理解为所有人在任何权威下都会服从。"],
+    ["prejudice", "刻板印象、偏见与歧视", "Stereotypes, prejudice and discrimination", "刻板印象是群体认知表征，偏见是评价态度，歧视是行为上的差别对待。", "三者相互影响但并不等同，群际分类、竞争与社会规范可参与形成。", "在案例中分别识别认知、情感和行为层面。", "承认群体差异不自动构成偏见，关键要看证据与评价方式。"],
+    ["prosocial", "亲社会行为", "Prosocial behavior", "亲社会行为旨在使他人或群体受益，其动机可以包含同情、规范与互惠期待。", "旁观者人数、责任分散、情境清晰度和助人能力会影响介入。", "区分行为结果与行为者动机。", "旁观者多并不必然导致无人帮助，情境和沟通可改变责任判断。"],
+  ],
+  "psych-development": [
+    ["research-design", "发展研究设计", "Developmental research designs", "发展研究通过横断、纵向和序列设计描述年龄相关变化。", "横断设计高效但易受群体差异影响；纵向设计能追踪个体但面临流失和重复测量效应。", "根据研究问题比较时间、样本和因果限制。", "年龄组差异不能直接等同于个体随年龄发生的变化。"],
+    ["prenatal", "产前发展", "Prenatal development", "产前发展经历有序的生理形成过程，同时受到遗传与环境条件共同影响。", "不同器官具有敏感期，影响的结果与暴露时间、剂量和个体条件有关。", "用概率和条件解释风险因素，而非作绝对预测。", "存在风险因素不意味着个体必然出现发展问题。"],
+    ["piaget", "皮亚杰认知发展理论", "Piaget's theory", "皮亚杰用图式、同化和平衡化解释儿童主动建构认知结构的过程。", "阶段理论强调思维结构的质变，后续研究也表明任务经验和领域知识会影响表现。", "理解阶段特征，同时说明经典任务的条件限制。", "儿童在某任务失败不表示其所有相关能力都完全不存在。"],
+    ["language-development", "语言发展", "Language development", "语言发展涉及语音、词汇、句法和语用能力在社会互动中的协调变化。", "生物准备、统计学习、共同注意和成人回应都为语言获得提供条件。", "区分理解性语言与表达性语言。", "词汇量增长不能单独代表全部语言能力。"],
+    ["moral-development", "道德发展", "Moral development", "道德发展包括对规则、公平、关怀和责任的理解以及相应行为调节。", "道德判断会受认知能力、情绪体验、关系和文化情境共同影响。", "区分道德推理水平与真实情境中的道德行为。", "会陈述高水平理由不保证在压力下必然采取相同行为。"],
+    ["aging", "成年晚期与老化", "Later adulthood and aging", "老化表现出多方向变化，不同认知、情绪和社会功能的轨迹并不相同。", "加工速度和部分流体能力可能下降，知识经验与情绪调节可保持或发展。", "关注个体差异、选择性优化和补偿。", "不能把正常老化与疾病性衰退混为一谈。"],
+  ],
+  "psych-education": [
+    ["classical-conditioning", "经典条件作用", "Classical conditioning", "经典条件作用通过刺激之间的联系使原本中性的刺激获得引发反应的能力。", "习得、消退、恢复、泛化和分化描述条件反应在不同阶段的变化。", "区分无条件刺激、条件刺激及其对应反应。", "消退通常是新学习，不等于原有联系被彻底抹除。"],
+    ["observational-learning", "观察学习", "Observational learning", "观察学习通过注意、保持、动作再现和动机过程从他人行为中获得信息。", "榜样行为是否被模仿还取决于榜样后果、学习者能力和目标。", "区分学会某行为与实际表现该行为。", "没有立即模仿不表示没有发生学习。"],
+    ["learning-motivation", "学习动机", "Learning motivation", "学习动机影响学习者选择任务、投入努力和面对困难时的坚持。", "目标定向、自我效能、任务价值和归因方式共同影响学习行为。", "把动机诊断落实到可改变的任务与反馈设计。", "不能把低表现简单解释为缺乏意志。"],
+    ["knowledge-learning", "陈述性知识学习", "Declarative knowledge learning", "陈述性知识学习需要把新信息与已有知识组织并建立可提取联系。", "精加工、组织、生成解释和间隔提取通常比机械重复更有助于长期保持。", "比较识记、理解和迁移三个层次。", "看起来熟悉不等于能够独立回忆和应用。"],
+    ["problem-solving-education", "问题解决与迁移", "Problem solving and transfer", "教育情境中的问题解决要求识别问题结构、调用策略并监控结果。", "通过变式练习和比较案例可以突出深层结构，促进跨情境迁移。", "让学习者说明为什么选择某一步。", "只练完全相同题型容易形成表面匹配。"],
+    ["instructional-design", "教学目标与设计", "Instructional design", "教学设计把学习目标、活动、评价和反馈组织成一致的学习过程。", "目标应描述可观察的学习结果，评价需与目标和练习机会匹配。", "检查目标、教学和评价三者的一致性。", "活动丰富不等于真正服务于学习目标。"],
+  ],
+  "psych-experimental": [
+    ["operational-definition", "操作定义", "Operational definition", "操作定义把抽象构念转化为可操纵或可测量的程序。", "同一构念可有不同操作化方式，因此结论的外推范围取决于操作与理论的匹配。", "说明测量指标如何代表构念。", "操作方便不表示构念效度自然成立。"],
+    ["within-between", "组间与组内设计", "Between- and within-subjects designs", "组间设计让不同参与者接受不同条件，组内设计让同一参与者接受多个条件。", "组内设计控制个体差异但需要处理顺序和携带效应；组间设计需关注组间可比性。", "根据研究问题选择设计并说明控制措施。", "不能只按样本量大小判断设计优劣。"],
+    ["counterbalancing", "顺序效应与抵消", "Order effects and counterbalancing", "顺序效应是条件先后影响后续表现，抵消法通过安排不同顺序降低系统偏差。", "完全抵消、拉丁方和随机化适合不同条件数量与资源限制。", "区分练习效应、疲劳效应和携带效应。", "随机呈现不保证小样本中每种顺序完全均衡。"],
+    ["psychophysics", "心理物理法", "Psychophysical methods", "心理物理法研究物理刺激量与感觉判断之间的关系。", "最小变化法、恒定刺激法和平均差误法在刺激呈现及阈限估计上各有特点。", "比较三种方法的程序、误差与效率。", "测得阈限会受判断标准、适应和程序顺序影响。"],
+    ["attention-experiment", "注意实验范式", "Attention paradigms", "注意实验通过线索、干扰和双任务条件推断选择与资源分配过程。", "结果解释要同时观察反应时和正确率，并控制刺激显著性和任务策略。", "联系范式操作与理论问题。", "单一反应时差异不能唯一确定某个内部加工阶段。"],
+    ["memory-experiment", "记忆实验范式", "Memory paradigms", "记忆实验通过学习、保持和测验阶段操纵编码或提取条件。", "自由回忆、线索回忆和再认对提取要求不同，成绩还受材料与策略影响。", "区分过程测量与最终正确率。", "再认高于回忆不表示再认完全不需要记忆搜索。"],
+  ],
+  "psych-statistics": [
+    ["mean-median", "均值、中位数与众数", "Mean, median and mode", "集中量用不同方式描述一组数据的典型位置。", "均值利用全部数值但受极端值影响，中位数依赖排序位置，众数反映最常见取值。", "依据测量尺度和分布形态选择指标。", "平均数不能在所有情境中代表典型个体。"],
+    ["variance", "方差", "Variance", "方差是各观测值对均值离差平方的平均，用于描述离散程度。", "平方消除正负离差抵消，并使较大偏离具有更大权重；样本方差常使用自由度校正。", "理解方差与标准差在单位上的区别。", "方差不能与原变量数值直接按同一单位比较。"],
+    ["correlation", "相关系数", "Correlation coefficient", "相关系数概括两个变量线性关系的方向与强度。", "其数值受到离群值、取值范围和关系形态影响，相关不提供充分的因果证据。", "先查看散点图，再解释相关系数。", "相关为零不表示两个变量之间不存在任何非线性关系。"],
+    ["sampling-distribution", "抽样分布与标准误", "Sampling distributions and standard errors", "抽样分布描述统计量在重复抽样中的变化，标准误衡量这种抽样波动。", "样本量增大通常使均值标准误减小，但不能消除系统性抽样偏差。", "区分样本标准差与统计量标准误。", "标准误小不意味着原始个体差异小。"],
+    ["hypothesis-testing", "假设检验逻辑", "Hypothesis testing", "假设检验在零假设和模型前提下评估样本结果与其相容程度。", "显著性水平、检验统计量和 p 值共同服务于决策，同时需报告效应量和不确定性。", "区分第一类错误、第二类错误与统计功效。", "未拒绝零假设不等于已经证明零假设正确。"],
+    ["t-test", "t 检验", "T tests", "t 检验用于在估计标准误的条件下比较均值差异。", "独立样本、配对样本和单样本 t 检验对应不同数据结构与研究问题。", "先确认独立性、配对关系和方差条件。", "不能把同一批参与者的前后测当作独立样本处理。"],
+    ["anova", "方差分析", "Analysis of variance", "方差分析通过比较组间变异与组内变异检验多个均值是否存在总体差异。", "显著总体检验只说明至少一组不同，具体差异需结合计划比较或多重比较。", "理解主效应、交互作用和误差项。", "总体显著不能直接说明每两组之间都显著。"],
+    ["regression", "线性回归", "Linear regression", "线性回归用一个或多个预测变量描述结果变量的条件均值。", "系数表示其他模型条件不变时预测变量变化与结果变化的关系，解释依赖模型假设与研究设计。", "检查残差、异常值和多重共线性。", "回归系数显著不自动证明预测变量造成结果变化。"],
+  ],
+  "psych-measurement": [
+    ["classical-test-theory", "经典测验理论", "Classical test theory", "经典测验理论把观察分数表示为真分数与测量误差之和。", "真分数是重复独立测量的期望概念，误差在模型中具有特定统计假设。", "用误差来源解释信度和分数波动。", "真分数不是可直接观察到的固定答题分数。"],
+    ["item-difficulty", "项目难度", "Item difficulty", "项目难度描述特定样本在题目上的作答水平，客观题常用通过率表示。", "通过率越高通常表示题目越容易，指标会随被试群体而变化。", "结合目标群体和测验用途解释难度。", "项目难度不是题目固有且永远不变的属性。"],
+    ["item-discrimination", "项目区分度", "Item discrimination", "项目区分度反映题目区分不同总体测验表现者的能力。", "可比较高低分组通过率或使用项目与总分的相关，但需防止项目本身重复计入造成膨胀。", "同时检查题目内容和统计指标。", "区分度低不一定只由题目太难造成。"],
+    ["standard-scores", "标准分数", "Standard scores", "标准分数把原始分数转换为相对于参照分布的位置。", "z 分数以均值为零、标准差为一表示相对距离，其他标准分可由线性转换得到。", "根据常模群体解释相对位置。", "标准分变化不表示受测者能力一定发生真实变化。"],
+    ["test-development", "测验编制流程", "Test development", "测验编制从明确用途与内容范围开始，经过命题、试测、项目分析和效度证据积累。", "评分、常模、使用说明和公平性审查也是测验质量的重要部分。", "把每一步与预期分数解释连接起来。", "项目数量多不自动保证测验有效。"],
+    ["intelligence-tests", "智力测验的解释", "Interpreting intelligence tests", "智力测验用标准化任务对某些认知表现进行取样和比较。", "解释分数应考虑常模、测量误差、语言文化经验以及具体用途。", "结合置信区间和分测验模式谨慎解释。", "单个总分不能概括个体全部能力与发展潜力。"],
+  ],
+  "politics-marxism": [
+    ["materialism", "物质与意识", "Matter and consciousness", "辩证唯物主义强调物质的客观实在性，同时承认意识具有能动作用。", "意识的内容来源于客观世界，其能动作用需要通过实践并受客观条件制约。", "说明物质决定性与意识能动性的统一。", "既不能夸大主观意志，也不能否认人的主动实践。"],
+    ["dialectics", "联系与发展", "Connection and development", "世界上的事物处在普遍联系和变化发展之中。", "联系具有客观性、普遍性和多样性，发展体现新事物产生和旧事物消亡的过程。", "用条件性和系统观点分析具体联系。", "不能把任何两个同时出现的现象都认定为本质联系。"],
+    ["quantity-quality", "量变与质变", "Quantitative and qualitative change", "量变是事物数量和程度的渐进变化，质变是根本性质的变化。", "量的积累在一定条件下引起质变，质变又为新的量变开辟条件。", "结合度、关节点和条件说明转化。", "量变并非在任何情况下都会自动导向预期质变。"],
+    ["truth", "真理及其检验", "Truth and its test", "真理是对客观事物及其规律的正确反映，具有客观性、具体性和条件性。", "实践是检验真理的重要标准，认识也在新的实践中不断修正和发展。", "区分真理的绝对性与相对性。", "真理的条件性不等于所有观点都同样正确。"],
+    ["labor-value", "劳动价值论基础", "Foundations of the labor theory of value", "商品具有使用价值和价值两个因素，生产商品的劳动具有具体劳动和抽象劳动两重性。", "社会必要劳动时间与商品价值量相关，劳动生产率变化会影响单位商品价值量。", "把商品二因素与劳动二重性对应起来。", "使用价值大小不能直接决定商品价值量。"],
+  ],
+  "politics-theory": [
+    ["mao-thought", "毛泽东思想的形成与发展", "Formation of Mao Zedong Thought", "毛泽东思想是在中国革命和建设实践中形成发展的理论成果。", "学习其形成要联系历史条件、实践问题和理论探索，区分不同发展阶段。", "按时间线梳理问题、实践与理论成果。", "不能把后来的概念和表述无条件投射到早期阶段。"],
+    ["revolution-road", "新民主主义革命道路", "Path of the new democratic revolution", "革命道路的形成与近代中国社会结构和革命力量分布密切相关。", "理解道路选择需要联系城乡关系、群众基础和长期实践探索。", "从国情与实践条件解释道路，而非只记结论。", "不能脱离历史条件机械套用其他国家经验。"],
+    ["socialist-construction", "社会主义建设道路探索", "Exploration of socialist construction", "社会主义建设道路探索围绕工业化、经济关系和社会发展展开。", "需要同时认识探索成果、曲折经验和历史条件，形成阶段性评价。", "用问题导向梳理政策目标与实践结果。", "不能以单一事件概括整个探索时期。"],
+    ["market-economy", "社会主义市场经济", "Socialist market economy", "社会主义市场经济把社会主义基本制度与市场机制结合起来。", "市场在资源配置中发挥作用，同时需要更好发挥政府作用并维护公共利益。", "区分市场机制、宏观调控和制度目标。", "不能把市场机制简单等同于某一种社会制度。"],
+  ],
+  "politics-xi": [
+    ["people-centered", "坚持以人民为中心", "People-centered development", "以人民为中心强调发展的出发点、过程和成果与人民需要相联系。", "学习时应区分价值立场、发展目标和具体政策工具。", "从民生、公共服务和共同发展等维度理解。", "不能把价值原则简化为单一短期指标。"],
+    ["new-development", "新发展理念", "New development philosophy", "创新、协调、绿色、开放、共享构成相互联系的发展理念。", "各理念针对发展中的不同矛盾，又需要在整体发展中协同落实。", "说明每项理念解决的主要问题及相互关系。", "不能把五个方面割裂为互不相关的政策口号。"],
+    ["rule-of-law", "全面依法治国", "Law-based governance", "全面依法治国强调在法治轨道上推进国家治理。", "学习框架包括科学立法、严格执法、公正司法和全民守法等相互联系环节。", "区分法治目标、制度建设和实施环节。", "依法治理不能被简化为增加惩罚强度。"],
+    ["security", "总体国家安全观", "Holistic approach to national security", "总体国家安全观以系统思维理解多领域安全之间的联系。", "风险治理需要统筹发展和安全，并识别不同领域风险的传导与边界。", "用系统关系分析安全议题。", "不能把安全理解为单一领域或孤立事件。"],
+  ],
+  "politics-history": [
+    ["opium-war", "鸦片战争与近代开端", "The Opium War and modern transformation", "鸦片战争后中国社会关系和外部环境发生深刻变化。", "学习应联系条约体系、社会结构变化以及民族危机加深，而非只记战役过程。", "从背景、过程、结果和影响建立时间线。", "不能用单一军事失败解释全部社会变化。"],
+    ["may-fourth", "五四运动", "May Fourth Movement", "五四运动推动了反帝反封建斗争和新的思想传播。", "理解其历史意义需联系群众参与、先进思想传播及中国革命阶段变化。", "区分事件起因、运动过程和长期影响。", "不能把思想文化活动与政治运动简单混为同一概念。"],
+    ["party-founding", "中国共产党成立的历史条件", "Historical conditions of the CPC's founding", "中国共产党的成立具有近代社会矛盾、工人运动发展和思想传播等多重条件。", "分析时应把阶级基础、思想基础和组织活动联系起来。", "用因果链而非孤立日期说明历史条件。", "成立日期本身不能替代对历史必然性与具体过程的解释。"],
+    ["resistance", "全民族抗战", "War of Resistance", "全民族抗战是在民族危机加深背景下形成的广泛抗战格局。", "应理解正面战场、敌后战场和社会动员的作用及其相互关系。", "从统一战线和持久抗战角度组织知识。", "不能用单一战场替代对整个抗战格局的分析。"],
+  ],
+  "politics-ethics": [
+    ["ideal-belief", "理想与信念", "Ideals and convictions", "理想指向未来目标，信念体现对一定认识和价值的稳定确信。", "理想信念通过实践选择和持续行动发挥作用，也需要在现实条件中检验和发展。", "区分理想、信念与一般愿望。", "远大目标不能代替具体可执行的行动。"],
+    ["public-morality", "公共生活中的道德规范", "Morality in public life", "公共道德调节共同生活中的基本行为关系。", "文明礼貌、助人为乐、爱护公物、保护环境和遵纪守法等要求需要落实到具体情境。", "分析行为对他人和公共秩序的影响。", "公共道德不只适用于线下熟人社会。"],
+    ["legal-rights", "法律权利的行使", "Exercise of legal rights", "法律权利的行使具有主体、范围、程序和边界条件。", "依法行使权利需要尊重他人合法权益和公共利益，并按法定程序主张。", "从权利内容、行使方式和救济途径分析案例。", "拥有权利不意味着可以采用任何方式实现诉求。"],
+    ["legal-duties", "法律义务与责任", "Legal duties and responsibility", "法律义务是法律规定主体应当作为或不作为的要求。", "违反义务可能产生相应法律责任，责任类型与构成条件需要依据具体法律判断。", "区分义务内容、违法事实和责任承担。", "道德批评不能直接替代法律责任认定。"],
+  ],
+  "politics-current": [
+    ["official-source", "权威来源分级", "Authoritative source hierarchy", "时政资料应优先使用可核验的官方原文和权威发布渠道。", "转载和评论可以辅助理解，但需保留原始发布日期、发布机构和链接，明确事实与观点。", "建立来源等级并记录抓取或阅读时间。", "来源名称看似正式不表示内容必然是官方原文。"],
+    ["policy-reading", "政策文本阅读", "Reading policy documents", "政策文本阅读需要先识别发布主体、适用范围、时间效力和核心任务。", "标题和摘要不能替代正文，重要表述应回到原文上下文核对。", "按背景、目标、措施和落实机制整理。", "不能把媒体概括直接当作政策原文引用。"],
+    ["current-affair-review", "时政复习卡片", "Current-affairs review cards", "时政复习卡片应以已核验事件为基础，压缩为事实、背景、关联理论和不确定性。", "卡片需要保留原文链接与发布日期，后续进展发生时更新而不是覆盖历史记录。", "先核验事实，再建立理论关联和练习问题。", "系统重点或 AI 判断不能冒充真题高频。"],
+  ],
+};
+
+const contentChapters = Object.fromEntries(Object.entries(chapters).map(([id, seeds]) => [id, [...seeds, ...(expandedChapters[id] ?? [])]]));
+
 export const CORE_CONTENT_VERSION = "2026.09-core-2";
 const legacyIds: Record<string, string> = {
   "psych-general:sensation-threshold": "kp-sensation-threshold",
@@ -84,15 +187,23 @@ const legacyIds: Record<string, string> = {
 
 export function createCoreKnowledgePoints(): BetaKnowledgePoint[] {
   const now = new Date().toISOString();
-  const output: BetaKnowledgePoint[] = Object.entries(chapters).flatMap(([chapterId, seeds]) => seeds.map(([id, title, titleEn, coreConcept, explanation, keyPoints, pitfalls], index) => ({
+  const output: BetaKnowledgePoint[] = Object.entries(contentChapters).flatMap(([chapterId, seeds]) => seeds.map(([id, title, titleEn, coreConcept, explanation, keyPoints, pitfalls], index) => ({
     id: legacyIds[`${chapterId}:${id}`] ?? `system-${chapterId}-${id}`, ownerId: "local-owner", createdAt: now, updatedAt: now,
     subjectId: chapterId.startsWith("psych-") ? "subject-psychology-312" : "subject-politics",
     chapterId, unitId: `unit-${chapterId}-${Math.min(index + 1, chapterId === "psych-general" ? 9 : 7)}`,
-    title, titleEn, coreConcept, explanation, keyPoints, pitfalls,
+    title, titleEn, coreConcept, explanation, keyPoints, pitfalls, summary: coreConcept, definition: coreConcept,
+    coreConcepts: [coreConcept], details: [explanation], commonMistakes: [pitfalls], examFocus: [keyPoints],
+    memoryVersion: `${coreConcept}\n${keyPoints}`, tags: [title, chapterId], difficulty: index < 3 ? "introductory" as const : "intermediate" as const,
+    sourceType: "system" as const, sourceNote: "Personal Learning OS 原创归纳；不是官方教材或真题统计。", contentPackVersion: CORE_CONTENT_VERSION,
     importance: index === 0 ? 5 : index === 1 ? 4 : 3,
     contentVersion: CORE_CONTENT_VERSION, personalNote: "", mastery: "new" as const, favorite: false,
   })));
-  for (const point of output) point.relatedPointIds = output.filter((entry) => entry.chapterId === point.chapterId && entry.id !== point.id).slice(0, 2).map((entry) => entry.id);
+  for (const point of output) {
+    const siblings = output.filter((entry) => entry.chapterId === point.chapterId);
+    const index = siblings.findIndex((entry) => entry.id === point.id);
+    point.prerequisiteIds = index > 0 ? [siblings[index - 1].id] : [];
+    point.relatedPointIds = siblings.filter((entry) => entry.id !== point.id).slice(Math.max(0, index - 1), Math.max(0, index - 1) + 2).map((entry) => entry.id);
+  }
   return output;
 }
 
@@ -117,7 +228,7 @@ export function createCoreQuestions(): BetaQuestion[] {
   const chapterQuestions: BetaQuestion[] = Object.entries(practice).map(([chapterId, [stem, options, answer, explanation]]) => ({
     id: `system-question-${chapterId}-1`, ownerId: "local-owner", createdAt: now, updatedAt: now,
     subjectId: chapterId.startsWith("psych-") ? "subject-psychology-312" : "subject-politics", chapterId,
-    knowledgePointId: legacyIds[`${chapterId}:${chapters[chapterId][0][0]}`] ?? `system-${chapterId}-${chapters[chapterId][0][0]}`,
+    knowledgePointId: legacyIds[`${chapterId}:${contentChapters[chapterId][0][0]}`] ?? `system-${chapterId}-${contentChapters[chapterId][0][0]}`,
     examType: "system-practice", questionType: "single" as const, stem,
     options: options.map((text, index) => ({ id: String(index), text })), answer: [String(answer)], explanation,
     difficulty: "easy", source: "Personal Learning OS 系统原创练习题", sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags: ["系统练习题"],
