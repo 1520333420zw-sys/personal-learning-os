@@ -14,12 +14,16 @@ function load(file, imports = {}) {
   return compiled.exports;
 }
 
-const core = load("src/data/content-packs/core.ts");
+const outline = load("src/data/browser/learning-outline.ts");
+const core = load("src/data/content-packs/core.ts", { "@/data/browser/learning-outline": outline });
 const universal = load("src/data/content-packs/universal.ts");
+const english = load("src/data/content-packs/english.ts");
 const universalContent = universal.createUniversalContent();
 const corePoints = core.createCoreKnowledgePoints();
 const points = [...corePoints, ...universalContent.points];
 const questions = [...core.createCoreQuestions(), ...universalContent.questions];
+const subjective = core.createCoreSubjectiveQuestions();
+const englishContent = english.createEnglishSystemContent();
 const chapters = new Set([
   "psych-general", "psych-social", "psych-development", "psych-education", "psych-experimental", "psych-statistics", "psych-measurement",
   "politics-marxism", "politics-theory", "politics-xi", "politics-history", "politics-ethics", "politics-current",
@@ -72,5 +76,15 @@ const digest = crypto.createHash("sha256").update(JSON.stringify(vocabulary.item
 assert.equal(vocabulary.checksum, `sha256:${digest}`, "vocabulary checksum mismatch");
 
 const stats = points.reduce((result, item) => ({ ...result, [item.subjectId]: (result[item.subjectId] ?? 0) + 1 }), {});
-console.log(JSON.stringify({ points: points.length, questions: questions.length, vocabulary: vocabulary.items.length, bySubject: stats }, null, 2));
+const psychQuestions=questions.filter((item)=>item.subjectId==="subject-psychology-312").length+3;
+const politicsQuestions=questions.filter((item)=>item.subjectId==="subject-politics").length+3;
+assert.ok(stats["subject-psychology-312"]>=200,"312 knowledge target");assert.ok(psychQuestions>=300,"312 question target");
+assert.ok(stats["subject-politics"]>=150,"politics knowledge target");assert.ok(politicsQuestions>=200,"politics question target");
+assert.equal(subjective.filter((item)=>item.subjectId==="subject-psychology-312").length,100,"312 subjective target");
+assert.equal(subjective.filter((item)=>item.subjectId==="subject-politics").length,80,"politics subjective target");
+for(const id of universalContent.subjects.map((item)=>item.id))assert.ok(stats[id]>=40,`${id} knowledge target`);
+assert.equal(englishContent.filter((item)=>item.kind==="sentence").length,100,"English sentence target");
+for(const kind of ["grammar","comprehension","translation","writing"])assert.ok(englishContent.filter((item)=>item.kind===kind).length>=10,`English ${kind} methods`);
+assert.equal(new Set(englishContent.map((item)=>item.content.replace(/\s+/g," ").trim())).size,englishContent.length,"duplicate English content");
+console.log(JSON.stringify({ points: points.length, questions: questions.length+6, subjective:subjective.length, vocabulary: vocabulary.items.length,englishContent:englishContent.length, bySubject: stats }, null, 2));
 console.log("Content integrity: IDs, references, answers, explanations, source labels, pack count and checksum passed");

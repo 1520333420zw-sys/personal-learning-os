@@ -11,6 +11,7 @@ import type {
 import { createOutlineUnits } from "./learning-outline";
 import { CORE_CONTENT_VERSION, createCoreKnowledgePoints, createCoreQuestions, createCoreSubjectiveQuestions } from "@/data/content-packs/core";
 import { UNIVERSAL_CONTENT_VERSION, createUniversalContent } from "@/data/content-packs/universal";
+import { ENGLISH_METHODS_VERSION, createEnglishSystemContent } from "@/data/content-packs/english";
 import { toLocalDateKey } from "@/lib/date";
 
 export const BETA_STORAGE_KEY = "personal-learning-os:beta:v1";
@@ -136,14 +137,15 @@ export function createInitialBetaState(): BetaState {
     version: 5, ownerId: LOCAL_OWNER_ID, subjects, chapters, units: createOutlineUnits(), knowledgePoints: allKnowledgePoints,
     tasks: [], studySessions: [], pomodoroSessions: [], studyProgress: [], reviewItems: [], questions: [...questions, ...createCoreQuestions(), ...universal.questions], questionAttempts: [], wrongQuestions: [],
     favorites: [], vocabulary: [], reading: [], readingNotes: [], recitations: initialRecitations, notes: [], books: [],
-    englishContent: [], subjectiveQuestions: createCoreSubjectiveQuestions(), currentAffairs: [], pdfDocuments: [], pdfNotes: [], resources: [],
+    englishContent: createEnglishSystemContent(), subjectiveQuestions: createCoreSubjectiveQuestions(), currentAffairs: [], pdfDocuments: [], pdfNotes: [], resources: [],
     habits: [], exercises: [], sleep: [], finance: [], goals: [],
-    contentPacks: { core: CORE_CONTENT_VERSION, universal: UNIVERSAL_CONTENT_VERSION, englishVocabulary: "2026.10-english-vocabulary-1" },
+    contentPacks: { core: CORE_CONTENT_VERSION, universal: UNIVERSAL_CONTENT_VERSION, englishVocabulary: "2026.10-english-vocabulary-1", englishMethods: ENGLISH_METHODS_VERSION },
     contentPackManifests:[
-      {packId:"core-psychology",version:CORE_CONTENT_VERSION,locale:"zh-CN",subject:"subject-psychology-312",publishedAt:"2026-10-02",checksum:"core-psychology-2026-10"},
-      {packId:"core-politics",version:CORE_CONTENT_VERSION,locale:"zh-CN",subject:"subject-politics",publishedAt:"2026-10-02",checksum:"core-politics-2026-10"},
-      {packId:"universal-foundations",version:UNIVERSAL_CONTENT_VERSION,locale:"zh-CN",subject:"universal",publishedAt:"2026-10-02",checksum:"universal-foundations-2026-10"},
+      {packId:"core-psychology",version:CORE_CONTENT_VERSION,locale:"zh-CN",subject:"subject-psychology-312",publishedAt:"2026-10-03",checksum:"core-psychology-2026-10",itemCount:211},
+      {packId:"core-politics",version:CORE_CONTENT_VERSION,locale:"zh-CN",subject:"subject-politics",publishedAt:"2026-10-03",checksum:"core-politics-2026-10",itemCount:150},
+      {packId:"universal-foundations",version:UNIVERSAL_CONTENT_VERSION,locale:"zh-CN",subject:"universal",publishedAt:"2026-10-03",checksum:"universal-foundations-2026-10",itemCount:520},
       {packId:"english-1-vocabulary",version:"2026.10-english-vocabulary-1",locale:"zh-CN",subject:"subject-english",publishedAt:"2026-10-03",checksum:"sha256:fc1fc790646c8612fb91ad744fa025727494816e29cc5c217c22b5efe4d4e5ca",itemCount:1000},
+      {packId:"english-1-methods",version:ENGLISH_METHODS_VERSION,locale:"zh-CN",subject:"subject-english",publishedAt:"2026-10-03",checksum:"english-methods-2026-10",itemCount:140},
     ],contentVocabularyState:{},cloudSync: { deletions: [] }, externalWriteReceipts: [],
   };
 }
@@ -242,7 +244,7 @@ export function migrateBetaState(value: unknown): BetaState {
     }), notes: prior.notes ?? [], books: prior.books ?? [],
     resources: prior.resources ?? [], habits: prior.habits ?? [], exercises: prior.exercises ?? [],
     sleep: prior.sleep ?? [], finance: prior.finance ?? [], goals: prior.goals ?? [],
-    englishContent: prior.englishContent ?? [], subjectiveQuestions: mergeCatalog(prior.subjectiveQuestions, initial.subjectiveQuestions).map((question) => {
+    englishContent: mergeCatalog(prior.englishContent, initial.englishContent), subjectiveQuestions: mergeCatalog(prior.subjectiveQuestions, initial.subjectiveQuestions).map((question) => {
       const packaged = initial.subjectiveQuestions.find((seed) => seed.id === question.id);
       const answer = prior.contentWrittenAnswers?.[question.id];
       return { ...question, ...packaged, ownAnswer: typeof answer === "string" ? answer : answer?.answer ?? question.ownAnswer,

@@ -15,11 +15,13 @@ function load(file, imports = {}) {
 }
 
 const outline = load("src/data/browser/learning-outline.ts");
-const core = load("src/data/content-packs/core.ts");
+const core = load("src/data/content-packs/core.ts", { "@/data/browser/learning-outline": outline });
 const universal = load("src/data/content-packs/universal.ts");
+const english = load("src/data/content-packs/english.ts");
 const dates = { toLocalDateKey: (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` };
 const { BETA_STORAGE_KEY, createInitialBetaState, migrateBetaState, loadBetaState, saveBetaState } = load("src/data/browser/beta-store.ts", {
   "./learning-outline": outline, "@/data/content-packs/core": core, "@/data/content-packs/universal": universal, "@/lib/date": dates,
+  "@/data/content-packs/english": english,
 });
 const previous = createInitialBetaState();
 previous.version = 1;
@@ -64,7 +66,7 @@ for (const chapter of coreChapters) {
 }
 const universalSubjects = restored.subjects.filter((subject) => subject.id.startsWith("subject-universal-"));
 for (const subject of universalSubjects) {
-  assert.equal(restored.knowledgePoints.filter((point) => point.subjectId === subject.id).length, 4);
+  assert.equal(restored.knowledgePoints.filter((point) => point.subjectId === subject.id).length, 40);
   assert.ok(restored.questions.some((question) => question.subjectId === subject.id));
 }
 const planContext = { today: "2026-09-17", subjectIds: ["subject-psychology-312"],

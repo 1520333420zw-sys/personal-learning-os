@@ -85,7 +85,36 @@ const paths: Path[] = [
   ], quiz: ["分析某法律规则是否适用时，首先应核对什么？", ["只看标题", "适用法域与时间", "网络点赞数", "个人偏好"], 1, "法律规则的适用范围和效力时间是分析前提。"] },
 ];
 
-export const UNIVERSAL_CONTENT_VERSION = "2026.09-universal-1";
+const expansionModules: Record<string, string[]> = {
+  mathematics:["数与代数","数列与递推","函数图像","极限与连续","微分学","积分学","线性代数","概率基础","数理逻辑"],
+  physics:["运动学","牛顿力学","功与能","动量与碰撞","振动与波","热学","静电场","电路与磁场","光学与近代物理"],
+  chemistry:["原子结构","化学键与分子结构","物质的量与计量","热化学","化学平衡","酸碱平衡","氧化还原与电化学","无机元素基础","有机化学基础"],
+  biology:["细胞结构","细胞代谢","遗传规律","分子生物学","进化机制","生态系统","人体生理","微生物","生物技术"],
+  "computer-science":["计算机组成","操作系统","数据结构","算法设计","计算机网络","数据库","编程基础","软件工程","信息安全与人工智能"],
+  statistics:["数据与测量","描述统计","概率基础","随机变量与分布","抽样分布","参数估计","假设检验","方差分析与回归","非参数方法"],
+  economics:["经济学方法","消费者选择","生产与成本","市场结构","市场失灵","国民收入","通货膨胀与失业","经济增长","开放经济"],
+  finance:["金融体系","货币时间价值","债券","股票","投资组合","风险管理","公司融资","金融市场","行为金融与监管"],
+  history:["史料与方法","古代文明","中世纪世界","近代国家形成","工业化","革命与社会变迁","帝国与殖民","世界大战","战后世界"],
+  geography:["地图与空间","地球系统","地貌过程","气候系统","水文循环","土壤与生态","人口与城市","经济地理","区域与全球化"],
+  philosophy:["哲学问题","逻辑与论证","认识论","科学哲学","形而上学","伦理学","政治哲学","心灵哲学","美学与解释"],
+  sociology:["社会学想象力","文化与社会化","互动与自我","群体与组织","制度","社会分层","性别与家庭","城市与人口","社会变迁与研究方法"],
+  law:["法律体系与法源","法律解释","权利义务","民事法律基础","刑事法律基础","行政法基础","程序与证据","商事与经济法","国际法与法治"],
+};
+
+const modeAxes:Record<string,[string,string][]>={
+  derivation:[["概念与符号","明确对象、符号和定义域"],["关键关系","推导核心关系并说明成立条件"],["例题路径","把条件翻译成分步求解过程"],["检验与反例","用边界情形检查结论"]],
+  law:[["现象与量","界定现象并选择描述物理量"],["定律关系","写出定律及各量之间的关系"],["适用条件","识别参考系、近似和边界条件"],["问题求解","画图、列式并检查单位与方向"]],
+  reaction:[["结构与组成","从微观组成解释宏观性质"],["变化规律","用守恒与平衡描述变化"],["反应条件","识别温度、浓度和催化条件"],["实验与计算","把观察、方程式和定量计算对应起来"]],
+  process:[["结构基础","说明结构层次及其功能"],["过程机制","按先后和因果关系描述过程"],["调节与稳态","分析反馈和环境影响"],["比较与证据","比较相近过程并连接实验事实"]],
+  algorithm:[["表示与抽象","确定信息表示和问题边界"],["过程与算法","把任务拆成可执行步骤"],["效率与权衡","分析时间、空间和可靠性"],["实现与验证","通过示例、测试和异常情况验证"]],
+  model:[["变量与定义","界定变量、尺度和研究对象"],["模型与假设","说明关系及其成立假设"],["估计与解释","把结果转换为有边界的结论"],["案例与局限","用案例检验模型并识别局限"]],
+  timeline:[["背景与时间","确定时期、空间和问题背景"],["过程与主体","梳理行动者、事件与阶段"],["结果与影响","区分短期结果和长期影响"],["史料与解释","用来源明确的证据比较解释"]],
+  spatial:[["位置与尺度","从位置、距离和尺度描述格局"],["自然过程","解释能量与物质的空间流动"],["人地关系","分析人类活动与环境反馈"],["区域比较","用指标比较区域并说明差异来源"]],
+  argument:[["问题与概念","澄清问题、概念和隐含前提"],["论证结构","识别前提、结论和推理关系"],["观点比较","比较立场及其证据标准"],["批判与重构","提出反例并形成更强论证"]],
+  case:[["概念与情境","把抽象概念放入具体社会情境"],["结构与机制","分析制度、关系和行为机制"],["证据与方法","选择资料并控制替代解释"],["判断与边界","区分事实描述、价值判断和适用范围"]],
+};
+
+export const UNIVERSAL_CONTENT_VERSION = "2026.10-universal-2";
 const blockIndex: Record<string, number> = {
   mathematics: 2, physics: 2, chemistry: 1, biology: 2, "computer-science": 2,
   statistics: 0, economics: 1, finance: 1, history: 1, geography: 2,
@@ -94,8 +123,9 @@ const blockIndex: Record<string, number> = {
 export function createUniversalContent(): { subjects: BetaSubject[]; chapters: BetaChapter[]; points: BetaKnowledgePoint[]; questions: BetaQuestion[] } {
   const now = new Date().toISOString(); const base = { ownerId: "local-owner", createdAt: now, updatedAt: now };
   const subjects = paths.map((path) => ({ ...base, id: `subject-universal-${path.slug}`, slug: path.slug, name: path.name, nameEn: path.en, learningMode: path.mode }));
-  const chapters = paths.map((path) => ({ ...base, id: `chapter-universal-${path.slug}-intro`, subjectId: `subject-universal-${path.slug}`, title: path.area, titleEn: path.areaEn, order: 1 }));
-  const points: BetaKnowledgePoint[] = paths.flatMap((path) => path.topics.map(([title, titleEn, coreConcept, explanation, keyPoints, pitfalls], index) => ({
+  const chapters = paths.flatMap((path) => [{ ...base, id: `chapter-universal-${path.slug}-intro`, subjectId: `subject-universal-${path.slug}`, title: path.area, titleEn: path.areaEn, order: 1 },
+    ...expansionModules[path.slug].map((title,index)=>({...base,id:`chapter-universal-${path.slug}-${index+2}`,subjectId:`subject-universal-${path.slug}`,title,titleEn:title,order:index+2}))]);
+  const authoredPoints: BetaKnowledgePoint[] = paths.flatMap((path) => path.topics.map(([title, titleEn, coreConcept, explanation, keyPoints, pitfalls], index) => ({
     ...base, id: `point-universal-${path.slug}-${index + 1}`, subjectId: `subject-universal-${path.slug}`,
     chapterId: `chapter-universal-${path.slug}-intro`, title, titleEn, coreConcept, explanation, keyPoints, pitfalls,
     summary: coreConcept, definition: coreConcept, coreConcepts: [coreConcept], details: [explanation], commonMistakes: [pitfalls],
@@ -106,18 +136,30 @@ export function createUniversalContent(): { subjects: BetaSubject[]; chapters: B
     importance: index === 0 ? 5 as const : 3 as const, contentVersion: UNIVERSAL_CONTENT_VERSION,
     personalNote: "", mastery: "new" as const, favorite: false,
   })));
+  const expandedPoints:BetaKnowledgePoint[]=paths.flatMap((path)=>expansionModules[path.slug].flatMap((module,moduleIndex)=>(modeAxes[path.mode]??modeAxes.model).map(([axis,focus],axisIndex)=>({
+    ...base,id:`point-universal-${path.slug}-${moduleIndex+2}-${axisIndex+1}`,subjectId:`subject-universal-${path.slug}`,chapterId:`chapter-universal-${path.slug}-${moduleIndex+2}`,
+    title:`${module}：${axis}`,titleEn:`${module}: ${axis}`,coreConcept:`${module}学习中的“${axis}”要求${focus}。`,
+    explanation:`先确定${module}所研究的对象，再围绕“${focus}”组织概念、证据与例子；结论必须保留适用条件。`,
+    keyPoints:`能够独立解释${module}的${axis}，并把它用于一个新的问题。`,pitfalls:`不要只背${module}的术语，也不要省略${focus}所依赖的条件。`,
+    summary:`${module}：${axis}`,definition:`${module}学习中的“${axis}”要求${focus}。`,coreConcepts:[module,axis],details:[focus],examples:[],comparisons:[],commonMistakes:[`省略${focus}的条件`],examFocus:[focus],memoryVersion:`${module} · ${axis}：${focus}。`,formulas:[],tags:[path.name,module,axis],difficulty:axisIndex<2?"introductory" as const:"intermediate" as const,
+    sourceType:"system" as const,sourceNote:"Personal Learning OS 原创入门路径；不替代专业教材。",contentPackVersion:UNIVERSAL_CONTENT_VERSION,importance:axisIndex===0?4 as const:3 as const,contentVersion:UNIVERSAL_CONTENT_VERSION,personalNote:"",mastery:"new" as const,favorite:false,
+  }))));
+  const points=[...authoredPoints,...expandedPoints];
   for (const point of points) {
     const siblings = points.filter((entry) => entry.chapterId === point.chapterId);
     const index = siblings.findIndex((entry) => entry.id === point.id);
     point.prerequisiteIds = index > 0 ? [siblings[index - 1].id] : [];
     point.relatedPointIds = siblings.filter((entry) => entry.id !== point.id).slice(Math.max(0, index - 1), Math.max(0, index - 1) + 2).map((entry) => entry.id);
   }
-  const questions = paths.map((path) => ({
+  const chapterQuestions = paths.map((path) => ({
     ...base, id: `question-universal-${path.slug}-intro`, subjectId: `subject-universal-${path.slug}`,
     chapterId: `chapter-universal-${path.slug}-intro`, knowledgePointId: `point-universal-${path.slug}-1`,
     examType: "system-practice", questionType: "single" as const, stem: path.quiz[0],
     options: path.quiz[1].map((text, index) => ({ id: String(index), text })), answer: [String(path.quiz[2])],
     explanation: path.quiz[3], difficulty: "easy" as const, source: "Personal Learning OS 系统原创练习题", sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags: ["系统练习题"],
   }));
+  const pointQuestions=expandedPoints.map((point)=>({...base,id:`question-${point.id}`,subjectId:point.subjectId,chapterId:point.chapterId,knowledgePointId:point.id,examType:"system-practice",questionType:"single" as const,
+    stem:`学习“${point.title}”时，哪种做法最合适？`,options:[{id:"0",text:point.keyPoints},{id:"1",text:point.pitfalls},{id:"2",text:"只记目录名称，不检查理解"},{id:"3",text:"忽略条件，把结论用于所有问题"}],answer:["0"],explanation:`${point.explanation} 因此应做到：${point.keyPoints}`,difficulty:"easy" as const,source:"Personal Learning OS 系统原创练习题",sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags:["系统练习题",point.title]}));
+  const questions=[...chapterQuestions,...pointQuestions];
   return { subjects, chapters, points, questions };
 }

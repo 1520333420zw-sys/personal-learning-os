@@ -1,4 +1,5 @@
 import type { BetaKnowledgePoint, BetaQuestion, BetaSubjectiveQuestion } from "@/domain/beta";
+import { createOutlineUnits } from "@/data/browser/learning-outline";
 
 // Original, introductory explanations. These are system priorities, not past-paper statistics.
 type Seed = [id: string, title: string, english: string, concept: string, explanation: string, key: string, pitfall: string];
@@ -172,9 +173,46 @@ const expandedChapters: Record<string, Seed[]> = {
   ],
 };
 
-const contentChapters = Object.fromEntries(Object.entries(chapters).map(([id, seeds]) => [id, [...seeds, ...(expandedChapters[id] ?? [])]]));
+const chapterStudyLens: Record<string, [string, string, string]> = {
+  "psych-general": ["基本现象及其发生条件", "加工过程、功能与相互影响", "研究证据、生活表现与适用边界"],
+  "psych-social": ["个体与社会情境的共同作用", "认知、情感和行为之间的联系", "群体差异、研究情境与解释边界"],
+  "psych-development": ["随年龄变化的主要表现", "成熟、经验和文化的共同影响", "研究设计、个体差异与发展可塑性"],
+  "psych-education": ["学习目标与行为表现", "学习者、任务和反馈之间的作用", "迁移条件、教学应用与评价证据"],
+  "psych-experimental": ["研究问题与可观察指标", "操纵、控制和测量的逻辑", "替代解释、误差来源与结论边界"],
+  "psych-statistics": ["统计量的定义与数据条件", "计算结果所表达的信息", "模型假设、不确定性与正确解释"],
+  "psych-measurement": ["测量目的、对象和分数含义", "误差控制与证据积累", "适用群体、使用情境与解释限制"],
+  "politics-marxism": ["基本概念与理论关系", "原理展开的逻辑层次", "联系实际时必须说明的条件"],
+  "politics-theory": ["理论形成的历史问题", "主要内容及内在联系", "历史条件、实践发展与评价边界"],
+  "politics-xi": ["稳定理论框架与价值立场", "总体布局中的相互关系", "具体表述须以当前权威原文为准"],
+  "politics-history": ["事件发生的社会历史条件", "过程、力量和阶段关系", "历史作用、局限与证据来源"],
+  "politics-ethics": ["概念、规范和适用主体", "价值要求与行为选择", "道德评价和法律判断的不同边界"],
+  "politics-current": ["事实、时间和权威来源", "事件背景与稳定理论的关联", "后续更新、不确定性与核验责任"],
+};
 
-export const CORE_CONTENT_VERSION = "2026.09-core-2";
+function createOutlineSeeds(): Record<string, Seed[]> {
+  const output: Record<string, Seed[]> = {};
+  for (const unit of createOutlineUnits()) {
+    const lens = chapterStudyLens[unit.chapterId];
+    const axes: [string, string][] = [
+      ["概念框架", lens[0]], ["关键关系", lens[1]], ["证据与应用", lens[2]],
+    ];
+    if (unit.subjectId === "subject-politics" && unit.order === 1) axes.push(["复习表达", `用准确概念组织${unit.title}的简答与分析题表述`]);
+    output[unit.chapterId] ??= [];
+    axes.forEach(([axis, focus], index) => output[unit.chapterId].push([
+      `outline-${unit.order}-${index + 1}`, `${unit.title}：${axis}`, `${unit.titleEn}: ${axis}`,
+      `${unit.title}的${axis}用于把“${focus}”组织成可理解、可复述的知识结构。`,
+      `学习这一部分时，先界定${unit.title}讨论的对象，再按“${focus}”梳理层次，并用相邻概念或具体材料检查理解。`,
+      `能够不看提示说明${unit.title}中的${focus}，并指出它与同章其他内容的联系。`,
+      `不要只记“${unit.title}”这一目录名称，也不要脱离前提把局部结论扩大到所有情境。`,
+    ]));
+  }
+  return output;
+}
+
+const outlineSeeds = createOutlineSeeds();
+const contentChapters = Object.fromEntries(Object.entries(chapters).map(([id, seeds]) => [id, [...seeds, ...(expandedChapters[id] ?? []), ...(outlineSeeds[id] ?? [])]]));
+
+export const CORE_CONTENT_VERSION = "2026.10-core-3";
 const legacyIds: Record<string, string> = {
   "psych-general:sensation-threshold": "kp-sensation-threshold",
   "psych-general:working-memory": "kp-working-memory",
@@ -234,7 +272,14 @@ export function createCoreQuestions(): BetaQuestion[] {
     difficulty: "easy", source: "Personal Learning OS 系统原创练习题", sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags: ["系统练习题"],
   }));
   const points=createCoreKnowledgePoints();const pointQuestions: BetaQuestion[] = points.map((point)=>{const siblings=points.filter((item)=>item.chapterId===point.chapterId&&item.id!==point.id);const distractor=siblings[0]?.coreConcept??"该概念只适用于所有情境且没有边界条件。";return{id:`system-question-${point.id}`,ownerId:"local-owner",createdAt:now,updatedAt:now,subjectId:point.subjectId,chapterId:point.chapterId,knowledgePointId:point.id,examType:"system-practice",questionType:"single" as const,stem:`关于“${point.title}”，下列哪项表述更准确？`,options:[{id:"0",text:point.coreConcept},{id:"1",text:point.pitfalls},{id:"2",text:distractor},{id:"3",text:"仅凭术语名称即可确定所有具体结论。"}],answer:["0"],explanation:`${point.explanation??point.coreConcept} 需要同时注意：${point.pitfalls}`,difficulty: point.importance === 5 ? "medium" : "easy",source:"Personal Learning OS 系统原创练习题",sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags:["系统练习题",point.title]};});
-  return [...chapterQuestions,...pointQuestions];
+  const extraLimits: Record<string, number> = { "subject-psychology-312": 80, "subject-politics": 41 };
+  const supplemental = Object.entries(extraLimits).flatMap(([subjectId, limit]) => points.filter((point) => point.subjectId === subjectId).slice(0, limit).map((point) => ({
+    id:`system-question-${point.id}-boundary`,ownerId:"local-owner",createdAt:now,updatedAt:now,subjectId:point.subjectId,chapterId:point.chapterId,knowledgePointId:point.id,
+    examType:"system-practice",questionType:"true_false" as const,stem:`判断：${point.pitfalls}`,options:[{id:"true",text:"正确"},{id:"false",text:"错误"}],answer:["false"],
+    explanation:`该表述是常见误区。更准确的理解是：${point.coreConcept} ${point.keyPoints}`,
+    difficulty:"medium" as const,source:"Personal Learning OS 系统原创练习题",sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags:["系统练习题",point.title,"辨析"],
+  })));
+  return [...chapterQuestions,...pointQuestions,...supplemental];
 }
 
 const writtenPractice: Record<string, [prompt: string, approach: string, keywords: string[], reference: string]> = {
@@ -255,9 +300,19 @@ const writtenPractice: Record<string, [prompt: string, approach: string, keyword
 
 export function createCoreSubjectiveQuestions(): BetaSubjectiveQuestion[] {
   const now = new Date().toISOString();
-  return Object.entries(writtenPractice).map(([chapterId, [prompt, thinking, keywords, referencePoints]]) => ({
+  const authored: BetaSubjectiveQuestion[] = Object.entries(writtenPractice).map(([chapterId, [prompt, thinking, keywords, referencePoints]]) => ({
     id: `system-written-${chapterId}-1`, ownerId: "local-owner", createdAt: now, updatedAt: now,
     subjectId: chapterId.startsWith("psych-") ? "subject-psychology-312" : "subject-politics",
-    chapterId, kind: "short", prompt, thinking, keywords, referencePoints, ownAnswer: "", source: "Personal Learning OS 系统原创练习题",
+    chapterId, kind: "short" as const, prompt, thinking, keywords, referencePoints, ownAnswer: "", source: "Personal Learning OS 系统原创练习题",
   }));
+  const points=createCoreKnowledgePoints();
+  const counts:Record<string,number>={"subject-psychology-312":93,"subject-politics":74};
+  const generated=Object.entries(counts).flatMap(([subjectId,count])=>points.filter((point)=>point.subjectId===subjectId).slice(0,count).map((point,index)=>({
+    id:`system-written-${point.id}`,ownerId:"local-owner",createdAt:now,updatedAt:now,subjectId:point.subjectId,chapterId:point.chapterId,kind:(index%4===3?"essay":"short") as "short"|"essay",
+    prompt:index%4===0?`界定“${point.title}”并说明其核心内容。`:index%4===1?`比较“${point.title}”与相关概念，指出主要区别。`:index%4===2?`结合一个适当情境分析“${point.title}”。`:`围绕“${point.title}”组织一段结构完整的论述。`,
+    thinking:`先写概念边界，再展开${point.keyPoints}，最后说明${point.pitfalls}`,
+    keywords:[point.title,...(point.tags??[]).filter((tag)=>tag!==point.title).slice(0,2)],referencePoints:`${point.coreConcept}\n${point.explanation??""}\n重点：${point.keyPoints}\n辨析：${point.pitfalls}`,
+    ownAnswer:"",source:"Personal Learning OS 系统原创练习题",
+  })));
+  return [...authored,...generated];
 }
