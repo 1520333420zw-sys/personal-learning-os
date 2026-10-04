@@ -2,13 +2,20 @@ import type { BetaFeynmanAttempt, BetaSectionProgress, BetaState } from "@/domai
 import { applyReviewRating, reviewDefaults } from "@/domain/review/review-engine";
 import type { CurriculumCatalog, TeachingUnit } from "./curriculum";
 
-export interface FeynmanFeedback { matchedTerms: string[]; missingTerms: string[]; complete: boolean; message: string; }
+export interface FeynmanFeedback { matchedTerms: string[]; missingTerms: string[]; possibleErrors: string[]; revisit: string[]; complete: boolean; message: string; }
 export function evaluateFeynman(response: string, unit: TeachingUnit): FeynmanFeedback {
   const normalized = response.toLocaleLowerCase();
   const matchedTerms = unit.requiredTerms.filter((term) => normalized.includes(term.toLocaleLowerCase()));
   const missingTerms = unit.requiredTerms.filter((term) => !matchedTerms.includes(term));
   const complete = response.trim().length >= 24 && (unit.requiredTerms.length === 0 || matchedTerms.length >= Math.ceil(unit.requiredTerms.length * 0.6));
-  return { matchedTerms, missingTerms, complete, message: complete ? "复述已经覆盖主要概念，可以进入即时检测。" : `先补上${missingTerms.slice(0, 3).join("、") || "更具体的条件和例子"}，再用更简单的话讲一次。` };
+  const possibleErrors = unit.misconceptionRules.filter((rule)=>rule.length<=16&&normalized.includes(rule.toLocaleLowerCase()));
+  const revisit = missingTerms.length ? ["正式定义", "本节知识点", "易错/易混"] : possibleErrors.length ? ["易错/易混", "反例与辨析"] : [];
+  const guidance = [
+    possibleErrors.length ? `理解可能错误：${possibleErrors.join("；")}` : "",
+    missingTerms.length ? `遗漏：${missingTerms.slice(0, 3).join("、")}` : "",
+    revisit.length ? `建议重新学习：${revisit.join("；")}` : "",
+  ].filter(Boolean).join(" ");
+  return { matchedTerms, missingTerms, possibleErrors, revisit, complete:complete&&!possibleErrors.length, message: complete&&!possibleErrors.length ? "复述已经覆盖主要概念，可以进入即时检测。" : `${guidance || "请补充更具体的条件和例子"}，再用更简单的话讲一次。` };
 }
 
 export function resolveContinueLearning(state: BetaState, catalog: CurriculumCatalog) {
@@ -65,6 +72,20 @@ export function completeCurriculumSection(state: BetaState, input: { curriculumI
   if (!chapter) { chapter={id:`chapter-progress-${input.chapterId}`,ownerId:state.ownerId,createdAt:timestamp,updatedAt:timestamp,curriculumId:input.curriculumId,chapterId:input.chapterId,completedSectionIds:[],chapterPracticeCompleted:false,recitationCompleted:false,reviewScheduled:false,lastStudiedAt:timestamp};state.chapterProgress.push(chapter); }
   if(!chapter.completedSectionIds.includes(input.sectionId))chapter.completedSectionIds.push(input.sectionId);chapter.lastStudiedAt=timestamp;chapter.updatedAt=timestamp;
   if(input.chapterSectionIds.every((id)=>chapter!.completedSectionIds.includes(id)))chapter.completedAt=timestamp;
+}
+
+export function scheduleSectionKnowledgeReviews(state: BetaState, knowledgePointIds: string[], now = new Date()) {
+  const dueDate = localDate(now);
+  for (const targetId of knowledgePointIds) {
+    if (state.reviewItems.some((item) => item.kind === "knowledge" && item.targetId === targetId && item.status === "due")) continue;
+    const point = state.knowledgePoints.find((item) => item.id === targetId);
+    if (!point) continue;
+    state.reviewItems.push({
+      id: `review-section-${targetId}-${now.getTime()}`, ownerId: state.ownerId, createdAt: now.toISOString(), updatedAt: now.toISOString(),
+      kind: "knowledge", targetId, title: point.title, dueDate, status: "due", subjectId: point.subjectId, chapterId: point.chapterId,
+      ...reviewDefaults("knowledge"),
+    });
+  }
 }
 
 function localDate(date: Date) { const shifted=new Date(date.getTime()-date.getTimezoneOffset()*60_000);return shifted.toISOString().slice(0,10); }

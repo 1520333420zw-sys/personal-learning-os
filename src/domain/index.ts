@@ -17,7 +17,7 @@ export type {
 export type { StudyTargetRef } from "./learning/study-target";
 export type { Curriculum, CurriculumCatalog, CurriculumChapter, CurriculumSection, TeachingUnit } from "./learning/curriculum";
 export { buildCurriculumCatalog, buildTeachingUnit } from "./learning/curriculum";
-export { completeCurriculumSection, estimatedMastery, evaluateFeynman, feynmanEvidence, recordQuickCheckAttempt, resolveContinueLearning } from "./learning/learning-experience";
+export { completeCurriculumSection, estimatedMastery, evaluateFeynman, feynmanEvidence, recordQuickCheckAttempt, resolveContinueLearning, scheduleSectionKnowledgeReviews } from "./learning/learning-experience";
 export type {
   CreateTaskInput,
   Plan,

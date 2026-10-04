@@ -269,7 +269,7 @@ export function migrateBetaState(value: unknown): BetaState {
     knowledgePoints: mergedPoints,
     questions: mergeCatalog(prior.questions, initial.questions),
     tasks: prior.tasks ?? [], studySessions: prior.studySessions ?? [],
-    reviewItems: (prior.reviewItems ?? []).map((item) => ({ reviewCount:0,ease:2.3,difficulty:item.kind==="question"?6:5,intervalDays:0,
+    reviewItems: (prior.reviewItems ?? []).map((item) => ({ reviewCount:0,ease:2.3,difficulty:item.kind==="question"?6:5,intervalDays:0,scheduleStep:0,scheduleReason:"既有复习项目已无损接入艾宾浩斯节奏",
       source:item.kind==="question"?"mistake":item.kind==="knowledge"?"knowledge":item.kind, ...item })), questionAttempts: prior.questionAttempts ?? [],
     wrongQuestions: prior.wrongQuestions ?? [], favorites: prior.favorites ?? [],
     vocabulary: prior.vocabulary ?? [], reading: prior.reading ?? [],

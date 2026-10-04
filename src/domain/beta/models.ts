@@ -70,6 +70,7 @@ export interface BetaReviewItem extends BetaEntity {
   status: "due" | "completed" | "mastered"; completedAt?: string;
   subjectId?: BetaId; chapterId?: BetaId; lastReviewedAt?: string; reviewCount?: number;
   ease?: number; difficulty?: number; intervalDays?: number;
+  scheduleStep?: number; scheduleReason?: string;
   source?: "manual" | "vocabulary" | "recitation" | "mistake" | "knowledge" | "attempt";
 }
 export type BetaQuestionType = "single" | "multiple" | "true_false";

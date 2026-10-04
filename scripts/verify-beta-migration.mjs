@@ -68,6 +68,7 @@ for (const [collection, id] of [["tasks","migration-task"],["studySessions","mig
   assert.ok(migratedLearning[collection].some((item) => item.id === id), `${collection} personal record was lost`);
 }
 assert.ok(migratedLearning.externalWriteReceipts.some((item) => item.inboxId === "migration-receipt"), "GPT receipt ledger entry was lost");
+assert.equal(migratedLearning.reviewItems.find((item)=>item.id==="migration-review")?.targetId,"kp-sensation-threshold","Existing review identity must survive the schedule upgrade");
 assert.ok(migrated.knowledgePoints[0].unitId);
 assert.equal(migrated.subjects.filter((item) => item.id.startsWith("subject-universal-")).length, 13);
 assert.ok(migrated.knowledgePoints.some((point) => point.id === "system-psych-statistics-p-value"));

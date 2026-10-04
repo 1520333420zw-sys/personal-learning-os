@@ -82,13 +82,20 @@ assert.ok(state.wrongQuestions.some((item) => item.questionId === question.id), 
 state.sectionProgress.push({id:`section-progress-${first.id}`,ownerId:state.ownerId,createdAt:now.toISOString(),updatedAt:now.toISOString(),curriculumId:catalog.chapters.find((item)=>item.id===first.chapterId).curriculumId,chapterId:first.chapterId,sectionId:first.id,status:"learning",lessonViewed:true,feynmanStatus:"completed",quickCheckCompleted:false,quickCheckCorrect:0,quickCheckTotal:0,startedAt:now.toISOString(),lastStudiedAt:now.toISOString()});
 const siblingIds = catalog.sections.filter((item)=>item.chapterId===first.chapterId).map((item)=>item.id);
 experience.completeCurriculumSection(state,{curriculumId:catalog.chapters.find((item)=>item.id===first.chapterId).curriculumId,chapterId:first.chapterId,sectionId:first.id,chapterSectionIds:siblingIds,correct:1,total:2},now);
+experience.scheduleSectionKnowledgeReviews(state,first.knowledgePointIds,now);
 assert.equal(state.sectionProgress.find((item)=>item.sectionId===first.id).status,"completed");
+assert.ok(first.knowledgePointIds.every((id)=>state.reviewItems.some((item)=>item.kind==="knowledge"&&item.targetId===id&&item.scheduleReason==="首次学习后的短时回顾")),"completed lessons must enter the Ebbinghaus review queue");
 const continued = experience.resolveContinueLearning(state,catalog); assert.ok(continued); assert.notEqual(continued.section.id, first.id, "Continue Learning should advance after completion");
 
 const gb={lang:"en-GB",name:"British"},us={lang:"en-US",name:"American"},generic={lang:"en-AU",name:"English"};
 assert.equal(speech.selectEnglishVoice([generic,us,gb],"GB"),gb); assert.equal(speech.selectEnglishVoice([generic],"US"),generic,"speech must fall back to any English voice");
 const reviewItem={reviewCount:0,ease:2.3,difficulty:5,intervalDays:0};
-assert.equal(review.scheduleReview(reviewItem,"again",now).intervalDays,1);assert.ok(review.scheduleReview(reviewItem,"easy",now).intervalDays>1,"vocabulary Easy must schedule later than Again");
+assert.deepEqual(review.EBBINGHAUS_INTERVALS,[0,1,2,4,7,15,30]);
+assert.equal(review.scheduleReview(reviewItem,"again",now).intervalDays,0,"Again on a new item must create a same-day short recall");
+const firstGood=review.scheduleReview(reviewItem,"good",now);assert.equal(firstGood.intervalDays,1);assert.equal(firstGood.scheduleStep,1);
+const secondGood=review.scheduleReview({...reviewItem,reviewCount:1,intervalDays:1,scheduleStep:1},"good",now);assert.equal(secondGood.intervalDays,2);
+assert.ok(review.scheduleReview({...reviewItem,reviewCount:1,intervalDays:1,scheduleStep:1},"easy",now).intervalDays>secondGood.intervalDays,"Easy must extend beyond the normal Ebbinghaus checkpoint");
+assert.ok(review.scheduleReview({...reviewItem,reviewCount:3,intervalDays:4,scheduleStep:3},"hard",now).intervalDays<4,"Hard must shorten the next interval");
 const plan=planning.buildSmartPlan(store.createInitialBetaState(),"2026-10-03");assert.ok(plan.suggestions.some((item)=>item.source==="curriculum"&&item.sectionId),"planning must recommend a concrete curriculum section");
 console.log(JSON.stringify({ psychologyBooks: psychologyCoverage }, null, 2));
 console.log(`Learning Experience V3: ${catalog.curricula.length} curricula, ${catalog.chapters.length} chapters, ${catalog.sections.length} ordered sections; seven-book mapping, Feynman, Quick Check, progress, continue, speech fallback, review and planning checks passed`);
