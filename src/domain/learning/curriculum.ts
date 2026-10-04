@@ -31,6 +31,25 @@ export interface CurriculumCatalog {
 const VERSION = "learning-experience-v3";
 const coreSlugs = new Set(["politics"]);
 
+function chapterReviewSection(chapter: CurriculumChapter, order: number): CurriculumSection {
+  return {
+    id: `${chapter.id}-review`, chapterId: chapter.id, order, knowledgePointIds: [], estimatedMinutes: 20,
+    title: "章末总结与思维导图", titleEn: "Chapter summary and mind map", kind: "chapter_review",
+    teaching: {
+      hook: `完成“${chapter.title}”的结构化回顾。`, hookEn: `Complete a structured review of ${chapter.titleEn}.`,
+      learningObjectives: ["串联本章各节", "主动回忆核心概念", "定位考点、错题与待复习内容"],
+      simpleExplanation: "先从章节结构回忆各节之间的关系，再用思维导图检查遗漏。",
+      formalDefinition: "章末复习把分散的小节学习证据汇总为知识结构、考点、练习、费曼复述与复习计划。",
+      examples: ["先隐藏关键词复述章节框架，再切换到完整导图核对。"], counterExamples: ["只重新浏览标题，不做主动回忆。"],
+      comparison: ["完整导图用于梳理；背诵模式用于主动提取；真题模式只展示已核验题目。"],
+      examTips: ["从各节重点与易错点中建立本章答题框架。"], commonMistakes: ["把系统原创练习误认为历年真题。"],
+      summary: `回顾${chapter.title}的各节、核心概念、考点和薄弱证据。`,
+      feynmanPrompts: [`不看目录，说明${chapter.title}包含哪些部分，以及它们如何关联。`],
+      requiredTerms: [chapter.title.replace(/^第\s*\d+\s*章\s*/, "")], misconceptionRules: ["章节总结不等于重复阅读。"],
+    },
+  };
+}
+
 function curriculumFor(subject: BetaState["subjects"][number]): Curriculum {
   const examType = subject.slug === "psychology" ? "312" : subject.slug === "politics" ? "postgraduate-politics" : subject.slug === "english" ? "english1" : "general";
   return {
@@ -64,6 +83,7 @@ export function buildCurriculumCatalog(state: BetaState): CurriculumCatalog {
           chapters.push({ id: chapterId, curriculumId: curriculum.id, sourceChapterId: area.id, sourceUnitId: unit.id, title: `${area.title} · 第 ${unit.order} 章 ${unit.title}`, titleEn: `${area.titleEn} · Chapter ${unit.order}: ${unit.titleEn}`, order: chapterOrder, description: `本章围绕${unit.title}建立概念、辨析与应试应用。`, descriptionEn: `Build concepts, distinctions and exam application for ${unit.titleEn}.` });
           const points = areaPoints.filter((item) => item.unitId === unit.id || unit === units.at(-1) && (!item.unitId || !validUnitIds.has(item.unitId)));
           points.forEach((point, index) => sections.push({ id: `curriculum-section-${point.id}`, chapterId, title: `${unit.order}.${index + 1} ${point.title}`, titleEn: `${unit.order}.${index + 1} ${point.titleEn}`, order: index + 1, knowledgePointIds: [point.id], estimatedMinutes: point.importance === 5 ? 15 : 12 }));
+          sections.push(chapterReviewSection(chapters.at(-1)!, points.length + 1));
         }
       }
       continue;
@@ -73,17 +93,22 @@ export function buildCurriculumCatalog(state: BetaState): CurriculumCatalog {
       const titles = { sentence: ["长难句", "Complex Sentences"], grammar: ["语法", "Grammar"], comprehension: ["阅读", "Reading"], translation: ["翻译", "Translation"], writing: ["写作", "Writing"] } as const;
       chapters.push({ id: "curriculum-chapter-english-vocabulary", curriculumId: curriculum.id, sourceChapterId: "english-vocabulary", title: "第 1 章 词汇", titleEn: "Chapter 1: Vocabulary", order: 1, description: "每日新词与到期复习。", descriptionEn: "Daily new words and due review." });
       sections.push({ id: "curriculum-section-english-vocabulary", chapterId: "curriculum-chapter-english-vocabulary", title: "1.1 今日词汇学习", titleEn: "1.1 Today's word study", order: 1, knowledgePointIds: [], estimatedMinutes: 20 });
+      sections.push(chapterReviewSection(chapters.at(-1)!, 2));
       kinds.forEach((kind, index) => {
         const chapterId = `curriculum-chapter-english-${kind}`;
         chapters.push({ id: chapterId, curriculumId: curriculum.id, sourceChapterId: "english-reading", title: `第 ${index + 2} 章 ${titles[kind][0]}`, titleEn: `Chapter ${index + 2}: ${titles[kind][1]}`, order: index + 2, description: `通过讲解、尝试与反馈学习${titles[kind][0]}。`, descriptionEn: `Learn ${titles[kind][1].toLowerCase()} through explanation, attempts and feedback.` });
-        state.englishContent.filter((item) => item.kind === kind).forEach((item, itemIndex) => sections.push({ id: `curriculum-section-${item.id}`, chapterId, title: `${index + 2}.${itemIndex + 1} ${item.title}`, titleEn: `${index + 2}.${itemIndex + 1} ${item.title}`, order: itemIndex + 1, knowledgePointIds: [], englishContentIds: [item.id], estimatedMinutes: kind === "sentence" ? 12 : 15 }));
+        const contentItems=state.englishContent.filter((item) => item.kind === kind);
+        contentItems.forEach((item, itemIndex) => sections.push({ id: `curriculum-section-${item.id}`, chapterId, title: `${index + 2}.${itemIndex + 1} ${item.title}`, titleEn: `${index + 2}.${itemIndex + 1} ${item.title}`, order: itemIndex + 1, knowledgePointIds: [], englishContentIds: [item.id], estimatedMinutes: kind === "sentence" ? 12 : 15 }));
+        sections.push(chapterReviewSection(chapters.at(-1)!, contentItems.length + 1));
       });
       continue;
     }
     subjectChapters.forEach((source, index) => {
       const chapterId = `curriculum-chapter-${source.id}`;
       chapters.push({ id: chapterId, curriculumId: curriculum.id, sourceChapterId: source.id, title: `第 ${index + 1} 章 ${source.title}`, titleEn: `Chapter ${index + 1}: ${source.titleEn}`, order: index + 1, description: `循序学习${source.title}的概念、方法与应用。`, descriptionEn: `Study the concepts, methods and applications of ${source.titleEn}.` });
-      state.knowledgePoints.filter((item) => item.chapterId === source.id).forEach((point, pointIndex) => sections.push({ id: `curriculum-section-${point.id}`, chapterId, title: `${index + 1}.${pointIndex + 1} ${point.title}`, titleEn: `${index + 1}.${pointIndex + 1} ${point.titleEn}`, order: pointIndex + 1, knowledgePointIds: [point.id], estimatedMinutes: 12 }));
+      const points=state.knowledgePoints.filter((item) => item.chapterId === source.id);
+      points.forEach((point, pointIndex) => sections.push({ id: `curriculum-section-${point.id}`, chapterId, title: `${index + 1}.${pointIndex + 1} ${point.title}`, titleEn: `${index + 1}.${pointIndex + 1} ${point.titleEn}`, order: pointIndex + 1, knowledgePointIds: [point.id], estimatedMinutes: 12 }));
+      sections.push(chapterReviewSection(chapters.at(-1)!, points.length + 1));
     });
   }
   return { curricula, chapters, sections };

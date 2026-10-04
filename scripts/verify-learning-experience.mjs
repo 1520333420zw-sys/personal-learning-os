@@ -56,6 +56,7 @@ for (const course of catalog.curricula) {
   for (const chapter of chapters) {
     const sections = catalog.sections.filter((item) => item.chapterId === chapter.id);
     assert.ok(sections.length > 0, `${chapter.id} must have sections`);
+    assert.equal(sections.filter((item) => item.kind === "chapter_review").length, 1, `${chapter.id} must have exactly one chapter review`);
     assert.deepEqual(sections.map((item) => item.order), [...sections].sort((a,b)=>a.order-b.order).map((item)=>item.order), `${chapter.id} sections must be ordered`);
     for (const section of sections) for (const id of section.knowledgePointIds) assert.ok(state.knowledgePoints.some((item) => item.id === id), `${section.id} references missing ${id}`);
   }

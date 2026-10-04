@@ -40,6 +40,8 @@ assert.deepEqual(migrated.sectionProgress, []);
 assert.deepEqual(migrated.feynmanAttempts, []);
 assert.deepEqual(migrated.cloudSync, { deletions: [] });
 assert.deepEqual(migrated.externalWriteReceipts, []);
+assert.equal(migrated.vocabularyStudyPreferences.mode, "standard");
+assert.deepEqual(migrated.vocabularyStudyPreferences.stages, ["en-zh", "zh-en", "audio", "blank"]);
 assert.equal(migrated.tasks.find((item) => item.id === "kept-task")?.title, "Keep my task");
 assert.equal(migrated.knowledgePoints[0].personalNote, "Keep my note");
 assert.equal(migrated.contentVocabularyState["en-vocab-system"].familiarity, "vague");

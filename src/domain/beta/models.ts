@@ -26,6 +26,7 @@ export type BetaTaskStatus = "todo" | "in_progress" | "completed";
 export type BetaTaskPriority = "low" | "medium" | "high";
 export interface BetaTask extends BetaEntity {
   title: string; description: string; subjectId?: BetaId; chapterId?: BetaId; date: string;
+  curriculumId?: BetaId; curriculumChapterId?: BetaId; sectionId?: BetaId;
   plannedMinutes: number; actualMinutes: number; priority: BetaTaskPriority; status: BetaTaskStatus;
   completedAt?: string; sourceType: "manual" | "review" | "system" | "ai";
   planningControl?: "manual" | "adjustable" | "locked";
@@ -97,6 +98,14 @@ export interface BetaVocabulary extends BetaEntity {
 export interface BetaVocabularyProgress {
   familiarity: BetaVocabulary["familiarity"]; favorite: boolean; reviewCount: number;
   nextReviewAt?: string; lastReviewedAt?: string; updatedAt: string;
+  trainingDimensions?: Partial<Record<VocabularyTrainingStage, boolean>>;
+}
+export type VocabularyTrainingStage = "en-zh" | "zh-en" | "audio" | "blank" | "spelling";
+export interface VocabularyStudyPreferences {
+  mode: "basic" | "standard" | "intensive" | "custom";
+  stages: VocabularyTrainingStage[];
+  accent: "GB" | "US";
+  speechRate: 0.75 | 1 | 1.25;
 }
 export interface BetaReading extends BetaEntity {
   title: string; source: string; url: string; publishedDate: string; category: string;
@@ -179,6 +188,7 @@ export interface BetaState {
   contentPacks?: Record<string, string>;
   contentPackManifests?: ContentPackManifest[];
   contentVocabularyState?: Record<string, BetaVocabularyProgress>;
+  vocabularyStudyPreferences?: VocabularyStudyPreferences;
   cloudSync: BetaCloudSyncState;
   externalWriteReceipts: { id: string; type: string; entityIds: string[]; importedAt: string; revertedAt?: string }[];
 }

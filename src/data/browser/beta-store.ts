@@ -149,7 +149,7 @@ export function createInitialBetaState(): BetaState {
       {packId:"universal-foundations",version:UNIVERSAL_CONTENT_VERSION,locale:"zh-CN",subject:"universal",publishedAt:"2026-10-03",checksum:"universal-foundations-2026-10",itemCount:520},
       {packId:"english-1-vocabulary",version:"2026.10-english-vocabulary-1",locale:"zh-CN",subject:"subject-english",publishedAt:"2026-10-03",checksum:"sha256:fc1fc790646c8612fb91ad744fa025727494816e29cc5c217c22b5efe4d4e5ca",itemCount:1000},
       {packId:"english-1-methods",version:ENGLISH_METHODS_VERSION,locale:"zh-CN",subject:"subject-english",publishedAt:"2026-10-03",checksum:"english-methods-2026-10",itemCount:140},
-    ],contentVocabularyState:{},cloudSync: { deletions: [] }, externalWriteReceipts: [],
+    ],contentVocabularyState:{},vocabularyStudyPreferences:{mode:"standard",stages:["en-zh","zh-en","audio","blank"],accent:"US",speechRate:1},cloudSync: { deletions: [] }, externalWriteReceipts: [],
   };
 }
 
@@ -301,5 +301,6 @@ export function migrateBetaState(value: unknown): BetaState {
     contentPacks: initial.contentPacks,
     contentPackManifests: [...(prior.contentPackManifests ?? []).filter((saved) => !initial.contentPackManifests?.some((current) => current.packId === saved.packId)), ...(initial.contentPackManifests ?? [])],
     contentVocabularyState: prior.contentVocabularyState ?? {},
+    vocabularyStudyPreferences: prior.vocabularyStudyPreferences ?? initial.vocabularyStudyPreferences,
   };
 }
