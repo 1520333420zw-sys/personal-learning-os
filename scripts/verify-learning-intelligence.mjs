@@ -4,7 +4,8 @@ import ts from "typescript";
 function load(file,imports={}){const source=fs.readFileSync(file,"utf8");const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;const compiled={exports:{}};new Function("module","exports","require",code)(compiled,compiled.exports,(name)=>{if(name in imports)return imports[name];throw new Error(`Unexpected import ${name}`);});return compiled.exports;}
 const review=load("src/domain/review/review-engine.ts");
 const weak=load("src/domain/analytics/weak-points.ts");
-const curriculum=load("src/domain/learning/curriculum.ts");
+const psychologyBooks=load("src/data/content-packs/psychology-books.ts");
+const curriculum=load("src/domain/learning/curriculum.ts",{"@/data/content-packs/psychology-books":psychologyBooks});
 const experience=load("src/domain/learning/learning-experience.ts",{"@/domain/review/review-engine":review});
 const planning=load("src/domain/planning/smart-plan.ts",{"@/domain/analytics/weak-points":weak,"@/domain/learning/curriculum":curriculum,"@/domain/learning/learning-experience":experience});
 const baseReview={intervalDays:0,ease:2.3,difficulty:5,reviewCount:0};

@@ -21,8 +21,10 @@ const outline = load("src/data/browser/learning-outline.ts");
 const core = load("src/data/content-packs/core.ts", { "@/data/browser/learning-outline": outline });
 const universal = load("src/data/content-packs/universal.ts");
 const english = load("src/data/content-packs/english.ts");
+const psychologyBooks = load("src/data/content-packs/psychology-books.ts");
 const store = load("src/data/browser/beta-store.ts", {
   "./learning-outline": outline, "@/data/content-packs/core": core, "@/data/content-packs/universal": universal, "@/data/content-packs/english": english,
+  "@/data/content-packs/psychology-books": psychologyBooks,
   "@/lib/date": { toLocalDateKey: (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` },
 });
 let state = store.createInitialBetaState();

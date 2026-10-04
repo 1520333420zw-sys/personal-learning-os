@@ -10,6 +10,7 @@ import type {
 } from "@/domain/beta";
 import { createOutlineUnits } from "./learning-outline";
 import { CORE_CONTENT_VERSION, createCoreKnowledgePoints, createCoreQuestions, createCoreSubjectiveQuestions } from "@/data/content-packs/core";
+import { findPsychologyBookSectionByKnowledgePoint, PSYCHOLOGY_BOOKS_VERSION } from "@/data/content-packs/psychology-books";
 import { UNIVERSAL_CONTENT_VERSION, createUniversalContent } from "@/data/content-packs/universal";
 import { ENGLISH_METHODS_VERSION, createEnglishSystemContent } from "@/data/content-packs/english";
 import { toLocalDateKey } from "@/lib/date";
@@ -140,9 +141,10 @@ export function createInitialBetaState(): BetaState {
     favorites: [], vocabulary: [], reading: [], readingNotes: [], recitations: initialRecitations, notes: [], books: [],
     englishContent: createEnglishSystemContent(), subjectiveQuestions: createCoreSubjectiveQuestions(), currentAffairs: [], pdfDocuments: [], pdfNotes: [], resources: [],
     habits: [], exercises: [], sleep: [], finance: [], goals: [],
-    contentPacks: { core: CORE_CONTENT_VERSION, universal: UNIVERSAL_CONTENT_VERSION, englishVocabulary: "2026.10-english-vocabulary-1", englishMethods: ENGLISH_METHODS_VERSION },
+    contentPacks: { core: CORE_CONTENT_VERSION, psychologyBooks: PSYCHOLOGY_BOOKS_VERSION, universal: UNIVERSAL_CONTENT_VERSION, englishVocabulary: "2026.10-english-vocabulary-1", englishMethods: ENGLISH_METHODS_VERSION },
     contentPackManifests:[
       {packId:"core-psychology",version:CORE_CONTENT_VERSION,locale:"zh-CN",subject:"subject-psychology-312",publishedAt:"2026-10-03",checksum:"core-psychology-2026-10",itemCount:211},
+      {packId:"psychology-books",version:PSYCHOLOGY_BOOKS_VERSION,locale:"zh-CN",subject:"subject-psychology-312",publishedAt:"2026-10-04",checksum:"psychology-books-2026-10-04",itemCount:7},
       {packId:"core-politics",version:CORE_CONTENT_VERSION,locale:"zh-CN",subject:"subject-politics",publishedAt:"2026-10-03",checksum:"core-politics-2026-10",itemCount:150},
       {packId:"universal-foundations",version:UNIVERSAL_CONTENT_VERSION,locale:"zh-CN",subject:"universal",publishedAt:"2026-10-03",checksum:"universal-foundations-2026-10",itemCount:520},
       {packId:"english-1-vocabulary",version:"2026.10-english-vocabulary-1",locale:"zh-CN",subject:"subject-english",publishedAt:"2026-10-03",checksum:"sha256:fc1fc790646c8612fb91ad744fa025727494816e29cc5c217c22b5efe4d4e5ca",itemCount:1000},
@@ -221,6 +223,23 @@ export function migrateBetaState(value: unknown): BetaState {
       lastStudiedAt: overlay?.lastStudiedAt ?? saved?.lastStudiedAt, nextReviewAt: overlay?.nextReviewAt ?? saved?.nextReviewAt,
       updatedAt: overlay?.updatedAt ?? saved?.updatedAt ?? point.updatedAt };
   });
+  const resolveLegacySection = (sectionId: string | undefined) => {
+    if (!sectionId?.startsWith("curriculum-section-")) return undefined;
+    return findPsychologyBookSectionByKnowledgePoint(initial, sectionId.slice("curriculum-section-".length));
+  };
+  const migratedSectionProgress = (prior.sectionProgress ?? []).map((item) => {
+    const section = item.curriculumId === "curriculum-psychology" ? resolveLegacySection(item.sectionId) : undefined;
+    return section ? { ...item, id: `section-progress-${section.id}`, curriculumId: section.chapterId.split("-chapter-")[0], chapterId: section.chapterId, sectionId: section.id } : item;
+  }).filter((item, index, rows) => rows.findLastIndex((candidate) => candidate.sectionId === item.sectionId) === index);
+  const migratedFeynmanAttempts = (prior.feynmanAttempts ?? []).map((item) => {
+    const section = resolveLegacySection(item.sectionId);
+    return section ? { ...item, sectionId: section.id } : item;
+  });
+  const migratedCourseProgress = (prior.courseProgress ?? []).map((item) => {
+    if (item.curriculumId !== "curriculum-psychology") return item;
+    const section = resolveLegacySection(item.lastSectionId);
+    return section ? { ...item, id: `course-progress-${section.chapterId.split("-chapter-")[0]}`, curriculumId: section.chapterId.split("-chapter-")[0], lastChapterId: section.chapterId, lastSectionId: section.id } : { ...item, id: "course-progress-curriculum-psych-general-6", curriculumId: "curriculum-psych-general-6", lastChapterId: undefined, lastSectionId: undefined };
+  });
   return {
     ...initial, ...prior, version: 6,
     subjects: mergeCatalog(prior.subjects, initial.subjects),
@@ -253,8 +272,8 @@ export function migrateBetaState(value: unknown): BetaState {
     }), currentAffairs: prior.currentAffairs ?? [],
     pdfDocuments: prior.pdfDocuments ?? [], pdfNotes: prior.pdfNotes ?? [],
     pomodoroSessions: prior.pomodoroSessions ?? [], studyProgress: prior.studyProgress ?? [],
-    courseProgress: prior.courseProgress ?? [], chapterProgress: prior.chapterProgress ?? [],
-    sectionProgress: prior.sectionProgress ?? [], feynmanAttempts: prior.feynmanAttempts ?? [],
+    courseProgress: migratedCourseProgress, chapterProgress: prior.chapterProgress ?? [],
+    sectionProgress: migratedSectionProgress, feynmanAttempts: migratedFeynmanAttempts,
     readingNotes: prior.readingNotes ?? [],
     externalWriteReceipts: Array.isArray(prior.externalWriteReceipts) ? prior.externalWriteReceipts : [],
     cloudSync: { deletions: Array.isArray(prior.cloudSync?.deletions) ? prior.cloudSync.deletions : [] },

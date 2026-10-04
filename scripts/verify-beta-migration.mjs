@@ -18,10 +18,12 @@ const outline = load("src/data/browser/learning-outline.ts");
 const core = load("src/data/content-packs/core.ts", { "@/data/browser/learning-outline": outline });
 const universal = load("src/data/content-packs/universal.ts");
 const english = load("src/data/content-packs/english.ts");
+const psychologyBooks = load("src/data/content-packs/psychology-books.ts");
 const dates = { toLocalDateKey: (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` };
 const { BETA_STORAGE_KEY, createInitialBetaState, migrateBetaState, loadBetaState, saveBetaState } = load("src/data/browser/beta-store.ts", {
   "./learning-outline": outline, "@/data/content-packs/core": core, "@/data/content-packs/universal": universal, "@/lib/date": dates,
   "@/data/content-packs/english": english,
+  "@/data/content-packs/psychology-books": psychologyBooks,
 });
 const previous = createInitialBetaState();
 previous.version = 1;
@@ -43,6 +45,14 @@ assert.equal(migrated.knowledgePoints[0].personalNote, "Keep my note");
 assert.equal(migrated.contentVocabularyState["en-vocab-system"].familiarity, "vague");
 assert.equal(migrated.units.length, 81);
 assert.equal(migrated.pdfDocuments.length, 0);
+const legacyLearning = createInitialBetaState();
+legacyLearning.courseProgress.push({ id:"course-progress-curriculum-psychology",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:00:00.000Z",curriculumId:"curriculum-psychology",lastChapterId:"curriculum-chapter-unit-psych-general-1",lastSectionId:"curriculum-section-kp-sensation-threshold",startedAt:"2026-10-03T00:00:00.000Z",lastStudiedAt:"2026-10-03T00:00:00.000Z" });
+legacyLearning.sectionProgress.push({ id:"section-progress-curriculum-section-kp-sensation-threshold",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:00:00.000Z",curriculumId:"curriculum-psychology",chapterId:"curriculum-chapter-unit-psych-general-1",sectionId:"curriculum-section-kp-sensation-threshold",status:"completed",lessonViewed:true,feynmanStatus:"completed",quickCheckCompleted:true,quickCheckCorrect:2,quickCheckTotal:2,startedAt:"2026-10-03T00:00:00.000Z",completedAt:"2026-10-03T00:20:00.000Z",lastStudiedAt:"2026-10-03T00:20:00.000Z" });
+legacyLearning.feynmanAttempts.push({ id:"feynman-legacy",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:00:00.000Z",sectionId:"curriculum-section-kp-sensation-threshold",knowledgePointIds:["kp-sensation-threshold"],response:"阈限复述",selfRating:"good",feedback:"ok",retryCount:0,matchedTerms:["感觉阈限"],missingTerms:[] });
+const migratedLearning = migrateBetaState(JSON.parse(JSON.stringify(legacyLearning)));
+assert.equal(migratedLearning.courseProgress[0].curriculumId, "curriculum-psych-general-6");
+assert.ok(migratedLearning.sectionProgress[0].sectionId.startsWith("curriculum-psych-general-6-chapter-"));
+assert.equal(migratedLearning.feynmanAttempts[0].sectionId, migratedLearning.sectionProgress[0].sectionId);
 assert.ok(migrated.knowledgePoints[0].unitId);
 assert.equal(migrated.subjects.filter((item) => item.id.startsWith("subject-universal-")).length, 13);
 assert.ok(migrated.knowledgePoints.some((point) => point.id === "system-psych-statistics-p-value"));

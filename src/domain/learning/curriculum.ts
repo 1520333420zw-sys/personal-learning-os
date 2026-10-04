@@ -1,30 +1,35 @@
 import type { BetaId, BetaState } from "@/domain/beta";
+import { buildPsychologyBookCatalog } from "@/data/content-packs/psychology-books";
 
 export interface Curriculum {
   id: BetaId; subjectId: BetaId; title: string; titleEn: string;
   version: string; examType: string; description: string; descriptionEn: string;
+  author?: string; edition?: string; status?: "verified" | "needs_pdf_calibration"; sourceNote?: string;
 }
 export interface CurriculumChapter {
   id: BetaId; curriculumId: BetaId; sourceChapterId: BetaId; sourceUnitId?: BetaId;
   title: string; titleEn: string; order: number; description: string; descriptionEn: string;
+  chapterNumber?: number; sourceStatus?: "verified" | "needs_pdf_calibration";
 }
 export interface CurriculumSection {
   id: BetaId; chapterId: BetaId; title: string; titleEn: string; order: number;
   knowledgePointIds: BetaId[]; englishContentIds?: BetaId[]; estimatedMinutes: number;
+  sectionNumber?: number; kind?: "textbook" | "chapter_review"; sourceStatus?: "verified" | "needs_pdf_calibration"; sourceNote?: string;
+  teaching?: Omit<TeachingUnit, "sectionId" | "quickCheckQuestionIds" | "recitationIds">;
 }
 export interface TeachingUnit {
   sectionId: BetaId; hook: string; hookEn: string; learningObjectives: string[];
   simpleExplanation: string; formalDefinition: string; examples: string[];
   counterExamples: string[]; comparison: string[]; examTips: string[];
   commonMistakes: string[]; summary: string; feynmanPrompts: string[];
-  requiredTerms: string[]; misconceptionRules: string[]; quickCheckQuestionIds: BetaId[];
+  requiredTerms: string[]; misconceptionRules: string[]; quickCheckQuestionIds: BetaId[]; recitationIds: BetaId[];
 }
 export interface CurriculumCatalog {
   curricula: Curriculum[]; chapters: CurriculumChapter[]; sections: CurriculumSection[];
 }
 
 const VERSION = "learning-experience-v3";
-const coreSlugs = new Set(["psychology", "politics"]);
+const coreSlugs = new Set(["politics"]);
 
 function curriculumFor(subject: BetaState["subjects"][number]): Curriculum {
   const examType = subject.slug === "psychology" ? "312" : subject.slug === "politics" ? "postgraduate-politics" : subject.slug === "english" ? "english1" : "general";
@@ -39,10 +44,12 @@ function curriculumFor(subject: BetaState["subjects"][number]): Curriculum {
 }
 
 export function buildCurriculumCatalog(state: BetaState): CurriculumCatalog {
-  const curricula = state.subjects.map(curriculumFor);
-  const chapters: CurriculumChapter[] = [];
-  const sections: CurriculumSection[] = [];
+  const psychologyBooks = buildPsychologyBookCatalog(state);
+  const curricula = [...psychologyBooks.curricula, ...state.subjects.filter((subject) => subject.slug !== "psychology").map(curriculumFor)];
+  const chapters: CurriculumChapter[] = [...psychologyBooks.chapters];
+  const sections: CurriculumSection[] = [...psychologyBooks.sections];
   for (const curriculum of curricula) {
+    if (curriculum.subjectId === "subject-psychology-312") continue;
     const subject = state.subjects.find((item) => item.id === curriculum.subjectId)!;
     const subjectChapters = state.chapters.filter((item) => item.subjectId === subject.id).sort((a, b) => a.order - b.order);
     if (coreSlugs.has(subject.slug)) {
@@ -93,9 +100,15 @@ export function buildTeachingUnit(state: BetaState, section: CurriculumSection):
     learningObjectives: ["完成一组 10–15 个单词", "用听读、英中、中英和填空主动回忆", "根据 Again / Hard / Good / Easy 安排复习"],
     simpleExplanation: "每次只处理一个词：先看与听，再在隐藏答案后主动回忆。反馈按钮会进入现有 Review Engine，决定下一次出现时间。",
     formalDefinition: "词汇学习以主动提取和间隔复习为核心；学习结果保存为词条进度与复习队列，而不是浏览次数。",
-    examples: ["看到 abandon 后先说出“放弃”，再从中文反向拼写 abandon，最后在例句空格中提取。"], counterExamples: ["连续滚动浏览 1000 个词却不做回忆，不能证明已经掌握。"], comparison: ["Good 表示较顺利回忆；Hard 表示勉强回忆；Again 表示需要很快重现。"], examTips: ["优先掌握语境义、固定搭配和例句中的用法。"], commonMistakes: ["只认得词形却不能回忆含义；只背中文而不会放回句子。"], summary: "少量新词 + 主动回忆 + 间隔复习，形成每天可持续的词汇闭环。", feynmanPrompts: ["请解释为什么“看过一个词”不等于“能主动提取这个词”。"], requiredTerms: ["主动回忆", "间隔复习"], misconceptionRules: ["浏览次数不等于掌握程度。"], quickCheckQuestionIds: state.questions.filter((item) => item.subjectId === "subject-english").slice(0, 3).map((item) => item.id),
+    examples: ["看到 abandon 后先说出“放弃”，再从中文反向拼写 abandon，最后在例句空格中提取。"], counterExamples: ["连续滚动浏览 1000 个词却不做回忆，不能证明已经掌握。"], comparison: ["Good 表示较顺利回忆；Hard 表示勉强回忆；Again 表示需要很快重现。"], examTips: ["优先掌握语境义、固定搭配和例句中的用法。"], commonMistakes: ["只认得词形却不能回忆含义；只背中文而不会放回句子。"], summary: "少量新词 + 主动回忆 + 间隔复习，形成每天可持续的词汇闭环。", feynmanPrompts: ["请解释为什么“看过一个词”不等于“能主动提取这个词”。"], requiredTerms: ["主动回忆", "间隔复习"], misconceptionRules: ["浏览次数不等于掌握程度。"], quickCheckQuestionIds: state.questions.filter((item) => item.subjectId === "subject-english").slice(0, 3).map((item) => item.id), recitationIds: [],
   };
   const points = section.knowledgePointIds.map((id) => state.knowledgePoints.find((item) => item.id === id)).filter(Boolean) as BetaState["knowledgePoints"];
+  if (section.teaching) {
+    const pointIds = new Set(section.knowledgePointIds);
+    const dedicated = state.questions.filter((item) => item.knowledgePointId && pointIds.has(item.knowledgePointId)).map((item) => item.id);
+    const fallback = state.questions.filter((item) => item.subjectId === "subject-psychology-312" && !dedicated.includes(item.id)).map((item) => item.id);
+    return { sectionId: section.id, ...section.teaching, quickCheckQuestionIds: [...dedicated, ...fallback].slice(0, 5), recitationIds: state.recitations.filter((item) => item.knowledgePointId && pointIds.has(item.knowledgePointId)).map((item) => item.id) };
+  }
   if (points.length) {
     const point = points[0]; const questions = state.questions.filter((item) => section.knowledgePointIds.includes(item.knowledgePointId ?? "")).slice(0, 5);
     const exampleDefaults: Record<string, string> = {
@@ -105,10 +118,10 @@ export function buildTeachingUnit(state: BetaState, section: CurriculumSection):
       "kp-marx-practice": "一种学习方法是否有效，最终要回到真实学习与测验中检验，而不能只看它听起来是否合理。",
     };
     const examples = point.examples?.length ? point.examples : [exampleDefaults[point.id] ?? `把“${point.title}”放进一个具体情境：先指出对象与条件，再用${point.coreConcept}解释结果。`];
-    return { sectionId: section.id, hook: `今天我们学习“${point.title}”。先理解它解决什么问题，再记住正式表述。`, hookEn: `Today you will learn ${point.titleEn}. Start with the problem it explains, then learn the formal wording.`, learningObjectives: [`用自己的话解释${point.title}`, `识别${point.title}的成立条件`, `避开常见混淆并完成即时检测`], simpleExplanation: point.explanation ?? point.coreConcept, formalDefinition: point.definition ?? point.coreConcept, examples, counterExamples: [`如果忽略适用条件，直接把“${point.title}”用于所有相似现象，就不是正确应用。`], comparison: point.comparisons?.length ? point.comparisons : [point.pitfalls], examTips: point.examFocus?.length ? point.examFocus : [point.keyPoints], commonMistakes: point.commonMistakes?.length ? point.commonMistakes : [point.pitfalls], summary: point.summary ?? `${point.coreConcept} ${point.keyPoints}`, feynmanPrompts: [`不看上面的内容，假设对方完全不了解${point.title}。请用自己的话解释它，并给一个例子。`], requiredTerms: compactTerms(point), misconceptionRules: [point.pitfalls], quickCheckQuestionIds: questions.map((item) => item.id) };
+    return { sectionId: section.id, hook: `今天我们学习“${point.title}”。先理解它解决什么问题，再记住正式表述。`, hookEn: `Today you will learn ${point.titleEn}. Start with the problem it explains, then learn the formal wording.`, learningObjectives: [`用自己的话解释${point.title}`, `识别${point.title}的成立条件`, `避开常见混淆并完成即时检测`], simpleExplanation: point.explanation ?? point.coreConcept, formalDefinition: point.definition ?? point.coreConcept, examples, counterExamples: [`如果忽略适用条件，直接把“${point.title}”用于所有相似现象，就不是正确应用。`], comparison: point.comparisons?.length ? point.comparisons : [point.pitfalls], examTips: point.examFocus?.length ? point.examFocus : [point.keyPoints], commonMistakes: point.commonMistakes?.length ? point.commonMistakes : [point.pitfalls], summary: point.summary ?? `${point.coreConcept} ${point.keyPoints}`, feynmanPrompts: [`不看上面的内容，假设对方完全不了解${point.title}。请用自己的话解释它，并给一个例子。`], requiredTerms: compactTerms(point), misconceptionRules: [point.pitfalls], quickCheckQuestionIds: questions.map((item) => item.id), recitationIds: state.recitations.filter((item) => item.knowledgePointId && section.knowledgePointIds.includes(item.knowledgePointId)).map((item) => item.id) };
   }
   const content = section.englishContentIds?.map((id) => state.englishContent.find((item) => item.id === id)).find(Boolean);
   if (!content) return null;
   const parts = content.content.split(/\n\n/).map((item) => item.trim()).filter(Boolean);
-  return { sectionId: section.id, hook: `今天用一小节掌握“${content.title}”。先尝试，再拆解，最后自己说清方法。`, hookEn: `Learn ${content.title} in one focused lesson: try, analyze, then explain the method yourself.`, learningObjectives: ["识别核心结构", "说明判断依据", "把方法用于新的表达"], simpleExplanation: parts[0] ?? content.content, formalDefinition: parts.find((item) => item.startsWith("Clause structure") || item.startsWith("Main clause")) ?? content.content, examples: [parts[0] ?? content.content], counterExamples: ["只按单词顺序逐词翻译，通常会破坏原句的逻辑关系。"], comparison: ["先找主干，再处理从句与修饰；不要把所有成分放在同一层级。"], examTips: ["先完成自己的判断，再展开解析并核对证据。"], commonMistakes: ["看到熟词就立即选答案，没有回到句子结构和上下文。"], summary: content.title, feynmanPrompts: [`请解释你如何判断“${content.title}”中的主干、修饰和逻辑关系。`], requiredTerms: content.title.split(/\s+/).filter((item) => item.length > 2).slice(0, 4), misconceptionRules: ["不能只给翻译结果，需要说明判断依据。"], quickCheckQuestionIds: [] };
+  return { sectionId: section.id, hook: `今天用一小节掌握“${content.title}”。先尝试，再拆解，最后自己说清方法。`, hookEn: `Learn ${content.title} in one focused lesson: try, analyze, then explain the method yourself.`, learningObjectives: ["识别核心结构", "说明判断依据", "把方法用于新的表达"], simpleExplanation: parts[0] ?? content.content, formalDefinition: parts.find((item) => item.startsWith("Clause structure") || item.startsWith("Main clause")) ?? content.content, examples: [parts[0] ?? content.content], counterExamples: ["只按单词顺序逐词翻译，通常会破坏原句的逻辑关系。"], comparison: ["先找主干，再处理从句与修饰；不要把所有成分放在同一层级。"], examTips: ["先完成自己的判断，再展开解析并核对证据。"], commonMistakes: ["看到熟词就立即选答案，没有回到句子结构和上下文。"], summary: content.title, feynmanPrompts: [`请解释你如何判断“${content.title}”中的主干、修饰和逻辑关系。`], requiredTerms: content.title.split(/\s+/).filter((item) => item.length > 2).slice(0, 4), misconceptionRules: ["不能只给翻译结果，需要说明判断依据。"], quickCheckQuestionIds: [], recitationIds: [] };
 }
