@@ -20,7 +20,7 @@ const universal = load("src/data/content-packs/universal.ts");
 const english = load("src/data/content-packs/english.ts");
 const psychologyBooks = load("src/data/content-packs/psychology-books.ts");
 const dates = { toLocalDateKey: (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` };
-const { BETA_STORAGE_KEY, createInitialBetaState, migrateBetaState, loadBetaState, saveBetaState } = load("src/data/browser/beta-store.ts", {
+const { BETA_STORAGE_KEY, createInitialBetaState, migrateBetaState, loadBetaState, saveBetaState, tryLoadBetaState } = load("src/data/browser/beta-store.ts", {
   "./learning-outline": outline, "@/data/content-packs/core": core, "@/data/content-packs/universal": universal, "@/lib/date": dates,
   "@/data/content-packs/english": english,
   "@/data/content-packs/psychology-books": psychologyBooks,
@@ -46,13 +46,28 @@ assert.equal(migrated.contentVocabularyState["en-vocab-system"].familiarity, "va
 assert.equal(migrated.units.length, 81);
 assert.equal(migrated.pdfDocuments.length, 0);
 const legacyLearning = createInitialBetaState();
+legacyLearning.tasks.push({ id:"migration-task",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:00:00.000Z",title:"Keep task",description:"",date:"2026-10-04",plannedMinutes:25,actualMinutes:10,priority:"medium",status:"todo",sourceType:"manual" });
+legacyLearning.studySessions.push({ id:"migration-session",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:30:00.000Z",subjectId:"subject-psychology-312",startedAt:"2026-10-03T00:00:00.000Z",endedAt:"2026-10-03T00:30:00.000Z",durationMinutes:30,sessionType:"learning",completed:true,notes:"Keep session" });
+legacyLearning.reviewItems.push({ id:"migration-review",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:00:00.000Z",kind:"knowledge",targetId:"kp-sensation-threshold",dueDate:"2026-10-04",status:"due" });
+legacyLearning.wrongQuestions.push({ id:"migration-mistake",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:00:00.000Z",questionId:"q-psych-1",mastered:false });
+legacyLearning.notes.push({ id:"migration-note",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:00:00.000Z",title:"Keep note",content:"personal",tags:[],favorite:false });
+legacyLearning.externalWriteReceipts.push({ inboxId:"migration-receipt",importedAt:"2026-10-03T00:00:00.000Z",entityType:"study_session",entityId:"migration-session",fingerprint:"migration-fingerprint" });
 legacyLearning.courseProgress.push({ id:"course-progress-curriculum-psychology",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:00:00.000Z",curriculumId:"curriculum-psychology",lastChapterId:"curriculum-chapter-unit-psych-general-1",lastSectionId:"curriculum-section-kp-sensation-threshold",startedAt:"2026-10-03T00:00:00.000Z",lastStudiedAt:"2026-10-03T00:00:00.000Z" });
 legacyLearning.sectionProgress.push({ id:"section-progress-curriculum-section-kp-sensation-threshold",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:00:00.000Z",curriculumId:"curriculum-psychology",chapterId:"curriculum-chapter-unit-psych-general-1",sectionId:"curriculum-section-kp-sensation-threshold",status:"completed",lessonViewed:true,feynmanStatus:"completed",quickCheckCompleted:true,quickCheckCorrect:2,quickCheckTotal:2,startedAt:"2026-10-03T00:00:00.000Z",completedAt:"2026-10-03T00:20:00.000Z",lastStudiedAt:"2026-10-03T00:20:00.000Z" });
 legacyLearning.feynmanAttempts.push({ id:"feynman-legacy",ownerId:legacyLearning.ownerId,createdAt:"2026-10-03T00:00:00.000Z",updatedAt:"2026-10-03T00:00:00.000Z",sectionId:"curriculum-section-kp-sensation-threshold",knowledgePointIds:["kp-sensation-threshold"],response:"阈限复述",selfRating:"good",feedback:"ok",retryCount:0,matchedTerms:["感觉阈限"],missingTerms:[] });
+let catalogBuilds = 0;
+const originalBuildPsychologyBookCatalog = psychologyBooks.buildPsychologyBookCatalog;
+psychologyBooks.buildPsychologyBookCatalog = (...args) => { catalogBuilds += 1; return originalBuildPsychologyBookCatalog(...args); };
 const migratedLearning = migrateBetaState(JSON.parse(JSON.stringify(legacyLearning)));
+psychologyBooks.buildPsychologyBookCatalog = originalBuildPsychologyBookCatalog;
+assert.equal(catalogBuilds, 1, "Legacy learning records must share one textbook catalog build");
 assert.equal(migratedLearning.courseProgress[0].curriculumId, "curriculum-psych-general-6");
 assert.ok(migratedLearning.sectionProgress[0].sectionId.startsWith("curriculum-psych-general-6-chapter-"));
 assert.equal(migratedLearning.feynmanAttempts[0].sectionId, migratedLearning.sectionProgress[0].sectionId);
+for (const [collection, id] of [["tasks","migration-task"],["studySessions","migration-session"],["reviewItems","migration-review"],["wrongQuestions","migration-mistake"],["notes","migration-note"]]) {
+  assert.ok(migratedLearning[collection].some((item) => item.id === id), `${collection} personal record was lost`);
+}
+assert.ok(migratedLearning.externalWriteReceipts.some((item) => item.inboxId === "migration-receipt"), "GPT receipt ledger entry was lost");
 assert.ok(migrated.knowledgePoints[0].unitId);
 assert.equal(migrated.subjects.filter((item) => item.id.startsWith("subject-universal-")).length, 13);
 assert.ok(migrated.knowledgePoints.some((point) => point.id === "system-psych-statistics-p-value"));
@@ -60,6 +75,10 @@ assert.ok(migrated.questions.some((question) => question.id === "question-univer
 assert.notEqual(migrated.contentPackManifests.find((item) => item.packId === "core-psychology")?.version, "old");
 const stored = new Map();
 globalThis.window = { localStorage: { getItem: (key) => stored.get(key) ?? null, setItem: (key, value) => stored.set(key, value) } };
+stored.set(BETA_STORAGE_KEY, "{invalid-json");
+assert.equal(tryLoadBetaState().ok, false, "Invalid persisted data must surface a recoverable load error");
+assert.equal(stored.get(BETA_STORAGE_KEY), "{invalid-json", "A failed load must not overwrite the original browser data");
+stored.delete(BETA_STORAGE_KEY);
 const packaged = migrated.knowledgePoints.find((point) => point.id === "system-psych-statistics-p-value");
 packaged.personalNote = "My own explanation"; packaged.mastery = "reviewing";
 const packagedRecitation = migrated.recitations.find((item) => item.knowledgePointId === packaged.id);

@@ -10,7 +10,7 @@ import type {
 } from "@/domain/beta";
 import { createOutlineUnits } from "./learning-outline";
 import { CORE_CONTENT_VERSION, createCoreKnowledgePoints, createCoreQuestions, createCoreSubjectiveQuestions } from "@/data/content-packs/core";
-import { findPsychologyBookSectionByKnowledgePoint, PSYCHOLOGY_BOOKS_VERSION } from "@/data/content-packs/psychology-books";
+import { buildPsychologyBookCatalog, PSYCHOLOGY_BOOKS_VERSION } from "@/data/content-packs/psychology-books";
 import { UNIVERSAL_CONTENT_VERSION, createUniversalContent } from "@/data/content-packs/universal";
 import { ENGLISH_METHODS_VERSION, createEnglishSystemContent } from "@/data/content-packs/english";
 import { toLocalDateKey } from "@/lib/date";
@@ -154,15 +154,25 @@ export function createInitialBetaState(): BetaState {
 }
 
 export function loadBetaState(): BetaState {
-  if (typeof window === "undefined") return createInitialBetaState();
-  const raw = window.localStorage.getItem(BETA_STORAGE_KEY);
-  if (!raw) return createInitialBetaState();
+  const result = tryLoadBetaState();
+  return result.ok ? result.state : createInitialBetaState();
+}
+
+export type BetaStateLoadResult =
+  | { ok: true; state: BetaState }
+  | { ok: false; error: "STORAGE_UNAVAILABLE" | "INVALID_DATA" };
+
+export function tryLoadBetaState(): BetaStateLoadResult {
+  if (typeof window === "undefined") return { ok: true, state: createInitialBetaState() };
   try {
+    const raw = window.localStorage.getItem(BETA_STORAGE_KEY);
+    if (!raw) return { ok: true, state: createInitialBetaState() };
     const value: unknown = JSON.parse(raw);
-    if (!isBetaState(value)) throw new Error("Invalid beta data");
-    return migrateBetaState(value);
-  } catch {
-    return createInitialBetaState();
+    if (!isBetaState(value)) return { ok: false, error: "INVALID_DATA" };
+    return { ok: true, state: migrateBetaState(value) };
+  } catch (error) {
+    console.error("beta_state_load_failed", error instanceof Error ? error.message : "unknown");
+    return { ok: false, error: error instanceof SyntaxError ? "INVALID_DATA" : "STORAGE_UNAVAILABLE" };
   }
 }
 
@@ -223,9 +233,20 @@ export function migrateBetaState(value: unknown): BetaState {
       lastStudiedAt: overlay?.lastStudiedAt ?? saved?.lastStudiedAt, nextReviewAt: overlay?.nextReviewAt ?? saved?.nextReviewAt,
       updatedAt: overlay?.updatedAt ?? saved?.updatedAt ?? point.updatedAt };
   });
+  const needsLegacyCurriculumMigration = (prior.sectionProgress ?? []).some((item) => item.curriculumId === "curriculum-psychology") ||
+    (prior.courseProgress ?? []).some((item) => item.curriculumId === "curriculum-psychology") ||
+    (prior.feynmanAttempts ?? []).some((item) => item.sectionId?.startsWith("curriculum-section-"));
+  const legacySectionsByKnowledgePoint = new Map<string, ReturnType<typeof buildPsychologyBookCatalog>["sections"][number]>();
+  if (needsLegacyCurriculumMigration) {
+    for (const section of buildPsychologyBookCatalog(initial).sections) {
+      for (const knowledgePointId of section.knowledgePointIds) {
+        if (!legacySectionsByKnowledgePoint.has(knowledgePointId)) legacySectionsByKnowledgePoint.set(knowledgePointId, section);
+      }
+    }
+  }
   const resolveLegacySection = (sectionId: string | undefined) => {
     if (!sectionId?.startsWith("curriculum-section-")) return undefined;
-    return findPsychologyBookSectionByKnowledgePoint(initial, sectionId.slice("curriculum-section-".length));
+    return legacySectionsByKnowledgePoint.get(sectionId.slice("curriculum-section-".length));
   };
   const migratedSectionProgress = (prior.sectionProgress ?? []).map((item) => {
     const section = item.curriculumId === "curriculum-psychology" ? resolveLegacySection(item.sectionId) : undefined;
