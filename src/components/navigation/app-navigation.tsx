@@ -21,6 +21,12 @@ function localizedHref(locale: Locale, href: string) {
 
 function isCurrentPath(pathname: string, locale: Locale, item: NavigationItem) {
   const href = localizedHref(locale, item.href);
+  const psychologyCurriculumHref = "/" + locale + "/learn/curriculum-psych-";
+
+  if (pathname.startsWith(psychologyCurriculumHref)) {
+    return item.id === "psychology";
+  }
+
   return item.href === "" ? pathname === href || pathname === href + "/" : pathname.startsWith(href);
 }
 
