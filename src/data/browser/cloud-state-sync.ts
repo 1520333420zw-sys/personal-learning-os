@@ -8,7 +8,7 @@ export const syncCollections = [
   "knowledgePoints", "tasks", "studySessions", "pomodoroSessions", "studyProgress", "reviewItems", "questionAttempts",
   "wrongQuestions", "favorites", "vocabulary", "reading", "readingNotes", "recitations", "notes", "books",
   "englishContent", "subjectiveQuestions", "currentAffairs", "pdfDocuments", "pdfNotes", "resources", "habits", "exercises", "sleep",
-  "finance", "goals", "courseProgress", "chapterProgress", "sectionProgress", "feynmanAttempts",
+  "finance", "goals", "courseProgress", "chapterProgress", "chapterMindMaps", "sectionProgress", "feynmanAttempts",
 ] as const;
 
 type SyncCollection = typeof syncCollections[number];

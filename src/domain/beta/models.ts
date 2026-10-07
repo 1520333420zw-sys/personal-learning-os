@@ -53,6 +53,14 @@ export interface BetaChapterProgress extends BetaEntity {
   chapterPracticeCompleted: boolean; recitationCompleted: boolean; reviewScheduled: boolean;
   completedAt?: string; lastStudiedAt: string;
 }
+export interface ImportedMindMapNode {
+  id: string; title: string; children: ImportedMindMapNode[];
+  linkedSectionId?: BetaId; linkedKnowledgePointId?: BetaId;
+}
+export interface BetaChapterMindMap extends BetaEntity {
+  curriculumId: BetaId; chapterId: BetaId; sourceFileName: string; importedAt: string;
+  format: "xmind" | "md" | "opml"; parsedTree: ImportedMindMapNode;
+}
 export interface BetaSectionProgress extends BetaEntity {
   curriculumId: BetaId; chapterId: BetaId; sectionId: BetaId;
   status: "not_started" | "learning" | "completed";
@@ -176,6 +184,7 @@ export interface BetaState {
   knowledgePoints: BetaKnowledgePoint[]; tasks: BetaTask[]; studySessions: BetaStudySession[];
   pomodoroSessions: BetaPomodoroSession[]; studyProgress: BetaStudyProgress[];
   courseProgress: BetaCourseProgress[]; chapterProgress: BetaChapterProgress[];
+  chapterMindMaps: BetaChapterMindMap[];
   sectionProgress: BetaSectionProgress[]; feynmanAttempts: BetaFeynmanAttempt[];
   reviewItems: BetaReviewItem[]; questions: BetaQuestion[]; questionAttempts: BetaQuestionAttempt[];
   wrongQuestions: BetaWrongQuestion[]; favorites: BetaFavorite[]; vocabulary: BetaVocabulary[];

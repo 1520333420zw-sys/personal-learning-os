@@ -137,7 +137,7 @@ export function createInitialBetaState(): BetaState {
   return {
     version: 6, ownerId: LOCAL_OWNER_ID, subjects, chapters, units: createOutlineUnits(), knowledgePoints: allKnowledgePoints,
     tasks: [], studySessions: [], pomodoroSessions: [], studyProgress: [], reviewItems: [], questions: [...questions, ...createCoreQuestions(), ...universal.questions], questionAttempts: [], wrongQuestions: [],
-    courseProgress: [], chapterProgress: [], sectionProgress: [], feynmanAttempts: [],
+    courseProgress: [], chapterProgress: [], chapterMindMaps: [], sectionProgress: [], feynmanAttempts: [],
     favorites: [], vocabulary: [], reading: [], readingNotes: [], recitations: initialRecitations, notes: [], books: [],
     englishContent: createEnglishSystemContent(), subjectiveQuestions: createCoreSubjectiveQuestions(), currentAffairs: [], pdfDocuments: [], pdfNotes: [], resources: [],
     habits: [], exercises: [], sleep: [], finance: [], goals: [],
@@ -293,7 +293,7 @@ export function migrateBetaState(value: unknown): BetaState {
     }), currentAffairs: prior.currentAffairs ?? [],
     pdfDocuments: prior.pdfDocuments ?? [], pdfNotes: prior.pdfNotes ?? [],
     pomodoroSessions: prior.pomodoroSessions ?? [], studyProgress: prior.studyProgress ?? [],
-    courseProgress: migratedCourseProgress, chapterProgress: prior.chapterProgress ?? [],
+    courseProgress: migratedCourseProgress, chapterProgress: prior.chapterProgress ?? [], chapterMindMaps: prior.chapterMindMaps ?? [],
     sectionProgress: migratedSectionProgress, feynmanAttempts: migratedFeynmanAttempts,
     readingNotes: prior.readingNotes ?? [],
     externalWriteReceipts: Array.isArray(prior.externalWriteReceipts) ? prior.externalWriteReceipts : [],

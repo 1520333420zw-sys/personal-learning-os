@@ -16,12 +16,14 @@
     "test:learning-intelligence": "node scripts/verify-learning-intelligence.mjs",
     "test:content": "node scripts/verify-content-integrity.mjs",
     "test:learning-experience": "node scripts/verify-learning-experience.mjs",
+    "test:mind-map": "node scripts/verify-mind-map-import.mjs",
     "verify-content-packs": "node scripts/verify-content-integrity.mjs",
     "preview:cloudflare": "opennextjs-cloudflare preview",
     "deploy:cloudflare": "opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.6",
+    "fflate": "^0.8.3",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8"
