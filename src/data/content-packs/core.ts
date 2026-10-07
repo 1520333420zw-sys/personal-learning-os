@@ -1,5 +1,6 @@
 import type { BetaKnowledgePoint, BetaQuestion, BetaSubjectiveQuestion } from "@/domain/beta";
 import { createOutlineUnits } from "@/data/browser/learning-outline";
+import { createPsychGeneralChapterOnePoints, PSYCH_GENERAL_CHAPTER_ONE_VERSION } from "@/data/content-packs/psychology-general-chapter-one";
 
 // Original, introductory explanations. These are system priorities, not past-paper statistics.
 type Seed = [id: string, title: string, english: string, concept: string, explanation: string, key: string, pitfall: string];
@@ -242,7 +243,7 @@ export function createCoreKnowledgePoints(): BetaKnowledgePoint[] {
     point.prerequisiteIds = index > 0 ? [siblings[index - 1].id] : [];
     point.relatedPointIds = siblings.filter((entry) => entry.id !== point.id).slice(Math.max(0, index - 1), Math.max(0, index - 1) + 2).map((entry) => entry.id);
   }
-  return output;
+  return [...output, ...createPsychGeneralChapterOnePoints()];
 }
 
 const practice: Record<string, [stem: string, options: string[], answer: number, explanation: string]> = {
@@ -271,9 +272,9 @@ export function createCoreQuestions(): BetaQuestion[] {
     options: options.map((text, index) => ({ id: String(index), text })), answer: [String(answer)], explanation,
     difficulty: "easy", source: "Personal Learning OS 系统原创练习题", sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags: ["系统练习题"],
   }));
-  const points=createCoreKnowledgePoints();const pointQuestions: BetaQuestion[] = points.map((point)=>{const siblings=points.filter((item)=>item.chapterId===point.chapterId&&item.id!==point.id);const distractor=siblings[0]?.coreConcept??"该概念只适用于所有情境且没有边界条件。";return{id:`system-question-${point.id}`,ownerId:"local-owner",createdAt:now,updatedAt:now,subjectId:point.subjectId,chapterId:point.chapterId,knowledgePointId:point.id,examType:"system-practice",questionType:"single" as const,stem:`关于“${point.title}”，下列哪项表述更准确？`,options:[{id:"0",text:point.coreConcept},{id:"1",text:point.pitfalls},{id:"2",text:distractor},{id:"3",text:"仅凭术语名称即可确定所有具体结论。"}],answer:["0"],explanation:`${point.explanation??point.coreConcept} 需要同时注意：${point.pitfalls}`,difficulty: point.importance === 5 ? "medium" : "easy",source:"Personal Learning OS 系统原创练习题",sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags:["系统练习题",point.title]};});
+  const points=createCoreKnowledgePoints();const questionPoints=points.filter((point)=>point.contentPackVersion!==PSYCH_GENERAL_CHAPTER_ONE_VERSION);const pointQuestions: BetaQuestion[] = questionPoints.map((point)=>{const siblings=questionPoints.filter((item)=>item.chapterId===point.chapterId&&item.id!==point.id);const distractor=siblings[0]?.coreConcept??"该概念只适用于所有情境且没有边界条件。";return{id:`system-question-${point.id}`,ownerId:"local-owner",createdAt:now,updatedAt:now,subjectId:point.subjectId,chapterId:point.chapterId,knowledgePointId:point.id,examType:"system-practice",questionType:"single" as const,stem:`关于“${point.title}”，下列哪项表述更准确？`,options:[{id:"0",text:point.coreConcept},{id:"1",text:point.pitfalls},{id:"2",text:distractor},{id:"3",text:"仅凭术语名称即可确定所有具体结论。"}],answer:["0"],explanation:`${point.explanation??point.coreConcept} 需要同时注意：${point.pitfalls}`,difficulty: point.importance === 5 ? "medium" : "easy",source:"Personal Learning OS 系统原创练习题",sourceType:"system" as const,sourceLabel:"系统练习",isOfficial:false,tags:["系统练习题",point.title]};});
   const extraLimits: Record<string, number> = { "subject-psychology-312": 80, "subject-politics": 41 };
-  const supplemental = Object.entries(extraLimits).flatMap(([subjectId, limit]) => points.filter((point) => point.subjectId === subjectId).slice(0, limit).map((point) => ({
+  const supplemental = Object.entries(extraLimits).flatMap(([subjectId, limit]) => questionPoints.filter((point) => point.subjectId === subjectId).slice(0, limit).map((point) => ({
     id:`system-question-${point.id}-boundary`,ownerId:"local-owner",createdAt:now,updatedAt:now,subjectId:point.subjectId,chapterId:point.chapterId,knowledgePointId:point.id,
     examType:"system-practice",questionType:"true_false" as const,stem:`判断：${point.pitfalls}`,options:[{id:"true",text:"正确"},{id:"false",text:"错误"}],answer:["false"],
     explanation:`该表述是常见误区。更准确的理解是：${point.coreConcept} ${point.keyPoints}`,

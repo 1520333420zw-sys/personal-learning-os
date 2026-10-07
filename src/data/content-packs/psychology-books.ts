@@ -1,7 +1,7 @@
 import type { BetaKnowledgePoint, BetaState } from "@/domain/beta";
 import type { Curriculum, CurriculumChapter, CurriculumSection, TeachingUnit } from "@/domain/learning/curriculum";
 
-export const PSYCHOLOGY_BOOKS_VERSION = "2026.10-psychology-books-1";
+export const PSYCHOLOGY_BOOKS_VERSION = "2026.10-psychology-books-2";
 
 export type BookCurriculumStatus = "verified" | "needs_pdf_calibration";
 
@@ -283,17 +283,29 @@ export function buildPsychologyBookCatalog(state: BetaState): { curricula: BookC
   for (const book of books) {
     curricula.push({ id: book.id, subjectId: "subject-psychology-312", title: book.title, titleEn: book.titleEn, version: PSYCHOLOGY_BOOKS_VERSION, examType: "312", description: `${book.author} · ${book.edition}。按教材章、节完成讲解、费曼复述、即时检测、背诵与复习。`, descriptionEn: `${book.author}, ${book.edition}. Guided lessons with recall, checks and review.`, author: book.author, edition: book.edition, status: book.status, sourceNote: book.sourceNote });
     const points = state.knowledgePoints.filter((point) => point.subjectId === "subject-psychology-312" && point.chapterId === book.sourceChapterId);
-    const distributed = distribute(points, book.chapters);
+    const distributed = distribute(points.filter((point) => !point.tags?.some((tag) => tag.startsWith("psych-general-ch1-section-"))), book.chapters);
+    if (book.id === "curriculum-psych-general-6") {
+      const displaced = distributed.filter((entry) => entry.chapterIndex === 0).flatMap((entry) => entry.points.splice(0));
+      const nextChapter = distributed.filter((entry) => entry.chapterIndex === 1);
+      displaced.forEach((point, index) => nextChapter[index % nextChapter.length].points.push(point));
+    }
     book.chapters.forEach((seed, chapterIndex) => {
       const chapterId = `${book.id}-chapter-${chapterIndex + 1}`;
       const verified = seed.verified === true;
-      chapters.push({ id: chapterId, curriculumId: book.id, sourceChapterId: book.sourceChapterId, title: `第 ${chapterIndex + 1} 章 ${seed.title}`, titleEn: `Chapter ${chapterIndex + 1}: ${seed.title}`, order: chapterIndex + 1, description: verified ? "目录已核验；教学内容为系统原创讲解。" : "系统教学结构可直接学习；教材原目录待 PDF 校准。", descriptionEn: verified ? "Verified table of contents; original system teaching." : "Usable system lesson; textbook wording awaits PDF calibration.", chapterNumber: chapterIndex + 1, sourceStatus: verified ? "verified" : "needs_pdf_calibration" });
+      const chapterDescription = book.id === "curriculum-psych-general-6" && chapterIndex === 0
+        ? "312考纲单元：心理学概述。教材目录已核验；知识内容依据用户人工核对结构原创整理，不冒充教材原文。"
+        : verified ? "目录已核验；教学内容为系统原创讲解。" : "系统教学结构可直接学习；教材原目录待 PDF 校准。";
+      chapters.push({ id: chapterId, curriculumId: book.id, sourceChapterId: book.sourceChapterId, title: `第 ${chapterIndex + 1} 章 ${seed.title}`, titleEn: `Chapter ${chapterIndex + 1}: ${seed.title}`, order: chapterIndex + 1, description: chapterDescription, descriptionEn: verified ? "Verified table of contents; original system teaching." : "Usable system lesson; textbook wording awaits PDF calibration.", chapterNumber: chapterIndex + 1, sourceStatus: verified ? "verified" : "needs_pdf_calibration" });
       seed.sections.forEach((title, sectionIndex) => {
-        const assigned = distributed.find((item) => item.chapterIndex === chapterIndex && item.sectionIndex === sectionIndex)?.points ?? [];
+        const assigned = book.id === "curriculum-psych-general-6" && chapterIndex === 0
+          ? points.filter((point) => point.tags?.includes(`psych-general-ch1-section-${sectionIndex + 1}`))
+          : distributed.find((item) => item.chapterIndex === chapterIndex && item.sectionIndex === sectionIndex)?.points ?? [];
         const sectionId = `${book.id}-chapter-${chapterIndex + 1}-section-${sectionIndex + 1}`;
         sections.push({ id: sectionId, chapterId, title: `第 ${sectionIndex + 1} 节 ${title}`, titleEn: `Section ${sectionIndex + 1}: ${title}`, order: sectionIndex + 1, sectionNumber: sectionIndex + 1, kind: "textbook", knowledgePointIds: assigned.map((point) => point.id), estimatedMinutes: Math.max(15, Math.min(35, 15 + assigned.length * 4)), sourceStatus: verified ? "verified" : "needs_pdf_calibration", sourceNote: verified ? "教材目录已核验；正文为系统原创教学。" : "小节名称或边界待教材 PDF 校准；正文为系统原创教学。", teaching: authoredTeaching(title, assigned) });
       });
-      const chapterPoints = distributed.filter((item) => item.chapterIndex === chapterIndex).flatMap((item) => item.points);
+      const chapterPoints = book.id === "curriculum-psych-general-6" && chapterIndex === 0
+        ? points.filter((point) => point.tags?.some((tag) => tag.startsWith("psych-general-ch1-section-")))
+        : distributed.filter((item) => item.chapterIndex === chapterIndex).flatMap((item) => item.points);
       const map = chapterPoints.map((point) => point.title).join(" → ") || seed.sections.join(" → ");
       const reviewTitle = "章末整合：知识地图与总复述";
       sections.push({ id: `${chapterId}-review`, chapterId, title: reviewTitle, titleEn: "Chapter review: map, recall and practice", order: seed.sections.length + 1, sectionNumber: seed.sections.length + 1, kind: "chapter_review", knowledgePointIds: chapterPoints.map((point) => point.id), estimatedMinutes: 30, sourceStatus: verified ? "verified" : "needs_pdf_calibration", sourceNote: "系统原创章末整合课，不是教材原文或教材原题。", teaching: {

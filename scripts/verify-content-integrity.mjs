@@ -15,7 +15,8 @@ function load(file, imports = {}) {
 }
 
 const outline = load("src/data/browser/learning-outline.ts");
-const core = load("src/data/content-packs/core.ts", { "@/data/browser/learning-outline": outline });
+const chapterOne = load("src/data/content-packs/psychology-general-chapter-one.ts");
+const core = load("src/data/content-packs/core.ts", { "@/data/browser/learning-outline": outline, "@/data/content-packs/psychology-general-chapter-one": chapterOne });
 const universal = load("src/data/content-packs/universal.ts");
 const english = load("src/data/content-packs/english.ts");
 const universalContent = universal.createUniversalContent();
@@ -24,6 +25,10 @@ const points = [...corePoints, ...universalContent.points];
 const questions = [...core.createCoreQuestions(), ...universalContent.questions];
 const subjective = core.createCoreSubjectiveQuestions();
 const englishContent = english.createEnglishSystemContent();
+const chapterOnePoints = chapterOne.createPsychGeneralChapterOnePoints();
+assert.deepEqual([1, 2, 3, 4].map((section) => chapterOnePoints.filter((point) => point.tags.includes(`psych-general-ch1-section-${section}`)).length), [7, 3, 13, 9], "General Psychology chapter 1 section granularity");
+assert.equal(new Set(chapterOnePoints.map((point) => point.id)).size, 32, "General Psychology chapter 1 stable IDs");
+assert.ok(chapterOnePoints.every((point) => point.sourceType === "system" && point.sourceNote.includes("不是教材原文或真题统计")), "General Psychology chapter 1 source labels");
 const chapters = new Set([
   "psych-general", "psych-social", "psych-development", "psych-education", "psych-experimental", "psych-statistics", "psych-measurement",
   "politics-marxism", "politics-theory", "politics-xi", "politics-history", "politics-ethics", "politics-current",

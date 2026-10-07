@@ -14,7 +14,8 @@ function load(file, imports = {}) {
 }
 
 const outline = load("src/data/browser/learning-outline.ts");
-const core = load("src/data/content-packs/core.ts", { "@/data/browser/learning-outline": outline });
+const chapterOne = load("src/data/content-packs/psychology-general-chapter-one.ts");
+const core = load("src/data/content-packs/core.ts", { "@/data/browser/learning-outline": outline, "@/data/content-packs/psychology-general-chapter-one": chapterOne });
 const universal = load("src/data/content-packs/universal.ts");
 const english = load("src/data/content-packs/english.ts");
 const psychologyBooks = load("src/data/content-packs/psychology-books.ts");
@@ -42,11 +43,13 @@ assert.equal(generalChapters.length, 14, "General Psychology 6 must follow its f
 assert.deepEqual(generalChapters.slice(0, 3).map((item) => item.title), ["第 1 章 心理学的研究对象和方法", "第 2 章 心理与行为的脑神经基础", "第 3 章 感觉"]);
 const openingSection = catalog.sections.find((item) => item.id === "curriculum-psych-general-6-chapter-1-section-1"); assert.ok(openingSection);
 assert.equal(openingSection.title, "第 1 节 心理学的研究对象");
+const firstChapterSections = [1, 2, 3, 4].map((number) => catalog.sections.find((item) => item.id === `curriculum-psych-general-6-chapter-1-section-${number}`));
+assert.deepEqual(firstChapterSections.map((section) => section?.knowledgePointIds.length), [7, 3, 13, 9], "General Psychology chapter 1 must use the reviewed 7/3/13/9 structure");
 const openingLesson = curriculum.buildTeachingUnit(state, openingSection); assert.ok(openingLesson);
 assert.ok(openingLesson.simpleExplanation.includes("考试前看到倒计时"));
 assert.ok(openingLesson.formalDefinition.includes("心理现象"));
 assert.ok(openingLesson.examples.length >= 2 && openingLesson.feynmanPrompts.length > 0);
-assert.ok(openingLesson.quickCheckQuestionIds.length >= 2 && openingLesson.quickCheckQuestionIds.length <= 5);
+assert.equal(openingLesson.quickCheckQuestionIds.length, 0, "reviewed chapter content must not receive template-generated questions");
 const psychologyPoints = state.knowledgePoints.filter((item) => item.subjectId === "subject-psychology-312");
 const textbookSections = catalog.sections.filter((item) => item.kind === "textbook" && catalog.chapters.find((chapter) => chapter.id === item.chapterId)?.curriculumId.startsWith("curriculum-psych-"));
 for (const point of psychologyPoints) assert.equal(textbookSections.filter((item) => item.knowledgePointIds.includes(point.id)).length, 1, `${point.id} must map to exactly one textbook section`);
@@ -62,7 +65,7 @@ for (const course of catalog.curricula) {
   }
 }
 for (const point of state.knowledgePoints) assert.ok(catalog.sections.some((item) => item.knowledgePointIds.includes(point.id)), `${point.id} is not mapped into a curriculum section`);
-const first = catalog.sections.find((item) => item.knowledgePointIds.length > 0); assert.ok(first);
+const first = catalog.sections.find((item) => item.knowledgePointIds.length > 0 && state.questions.some((question) => item.knowledgePointIds.includes(question.knowledgePointId))); assert.ok(first);
 const lesson = curriculum.buildTeachingUnit(state, first); assert.ok(lesson);
 for (const key of ["hook","simpleExplanation","formalDefinition","summary"]) assert.ok(lesson[key].trim(), `TeachingUnit ${key} is required`);
 assert.ok(lesson.examples.length && lesson.feynmanPrompts.length);

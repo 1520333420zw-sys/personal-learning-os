@@ -131,8 +131,7 @@ export function buildTeachingUnit(state: BetaState, section: CurriculumSection):
   if (section.teaching) {
     const pointIds = new Set(section.knowledgePointIds);
     const dedicated = state.questions.filter((item) => item.knowledgePointId && pointIds.has(item.knowledgePointId)).map((item) => item.id);
-    const fallback = state.questions.filter((item) => item.subjectId === "subject-psychology-312" && !dedicated.includes(item.id)).map((item) => item.id);
-    return { sectionId: section.id, ...section.teaching, quickCheckQuestionIds: [...dedicated, ...fallback].slice(0, 5), recitationIds: state.recitations.filter((item) => item.knowledgePointId && pointIds.has(item.knowledgePointId)).map((item) => item.id) };
+    return { sectionId: section.id, ...section.teaching, quickCheckQuestionIds: dedicated.slice(0, 5), recitationIds: state.recitations.filter((item) => item.knowledgePointId && pointIds.has(item.knowledgePointId)).map((item) => item.id) };
   }
   if (points.length) {
     const point = points[0]; const questions = state.questions.filter((item) => section.knowledgePointIds.includes(item.knowledgePointId ?? "")).slice(0, 5);
