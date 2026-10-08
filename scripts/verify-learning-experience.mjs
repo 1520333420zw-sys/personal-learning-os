@@ -34,6 +34,13 @@ assert.equal(catalog.curricula.filter((item) => item.subjectId === "subject-psyc
 assert.ok(catalog.curricula.some((item) => item.id === "curriculum-psych-general-6"));
 assert.ok(catalog.curricula.some((item) => item.id === "curriculum-politics"));
 assert.ok(catalog.curricula.some((item) => item.id === "curriculum-english"));
+for (const curriculumId of ["curriculum-politics", "curriculum-english", "curriculum-mathematics"]) {
+  const course = catalog.curricula.find((item) => item.id === curriculumId); assert.ok(course, `${curriculumId} must use the shared curriculum catalog`);
+  const courseChapters = catalog.chapters.filter((item) => item.curriculumId === curriculumId); assert.ok(courseChapters.length, `${curriculumId} must expose chapters`);
+  const learningSection = catalog.sections.find((item) => item.chapterId === courseChapters[0].id && item.kind !== "chapter_review"); assert.ok(learningSection, `${curriculumId} must expose a learning section`);
+  assert.ok(curriculum.buildTeachingUnit(state, learningSection), `${curriculumId} must expose shared lesson content or an explicit configured unit`);
+  const mapSection = catalog.sections.find((item) => item.chapterId === courseChapters[0].id && item.kind === "chapter_review"); assert.equal(mapSection?.id, `${courseChapters[0].id}-review`, `${curriculumId} must expose one stable chapter mind-map route`);
+}
 const psychologyCoverage = psychologyBooks.psychologyBookCoverage(state);
 assert.equal(psychologyCoverage.length, 7, "seven psychology book curricula are required");
 assert.ok(psychologyCoverage.every((item) => item.contentCoverage === 100), "every textbook section needs a teaching lesson");
